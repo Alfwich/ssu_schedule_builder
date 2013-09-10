@@ -1,0 +1,13 @@
+Web Based, Django?
+Input:
+	Courses: 
+	Times Available:
+	Met Pre-Reqs:
+	Desired GE categories: ???
+	Restrictions: EX: 'I can't goto school on Wed nights'
+Processing:
+Output:
+	Graphical schedules:
+	Multiple schedules for each permutation of class choices:
+Research:
+	Peoplesoft for user quality of life issues
