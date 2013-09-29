@@ -1,0 +1,2 @@
+1) Go into createAndLoadTables.bash and edit DB_USER and DB_PASS
+2) Run createAndLoadTables
