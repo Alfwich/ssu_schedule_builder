@@ -13,7 +13,7 @@ def main():
             strip_whitespace(row)
             parser.load(row)
             
-    printer = SQLPrinter(os.environ['DB_USER'])
+    printer = SQLPrinter(os.environ['DB_NAME'])
     printer.write("course", parser.courses())
     printer.write("section", parser.sections())
     printer.write("section_professor", parser.section_professors())

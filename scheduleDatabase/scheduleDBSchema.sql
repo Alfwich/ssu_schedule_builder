@@ -1,4 +1,4 @@
-use zthompson;
+use $DB_NAME;
 BEGIN;
 set @@foreign_key_checks = 0;
 
