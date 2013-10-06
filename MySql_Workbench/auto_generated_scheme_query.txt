@@ -1,0 +1,190 @@
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;
+USE `mydb` ;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`section`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`section` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `class_no` VARCHAR(45) NULL,
+  `component` VARCHAR(45) NULL,
+  `location` VARCHAR(45) NULL,
+  `days` VARCHAR(45) NULL,
+  `start_time` VARCHAR(45) NULL,
+  `end_time` VARCHAR(45) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`course`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`course` (
+  `title` VARCHAR(100) NULL,
+  `catalog_number` VARCHAR(45) NULL,
+  `units` VARCHAR(45) NULL,
+  `ge_code` VARCHAR(45) NULL,
+  `subject` VARCHAR(45) NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `section_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_course_section1_idx` (`section_id` ASC),
+  CONSTRAINT `fk_course_section1`
+    FOREIGN KEY (`section_id`)
+    REFERENCES `mydb`.`section` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`schedule`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`schedule` (
+  `schedule_no` INT NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`schedule_no`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`student`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`student` (
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `ssn` VARCHAR(10) NOT NULL,
+  `schedule_schedule_no` INT NOT NULL,
+  PRIMARY KEY (`ssn`),
+  INDEX `fk_student_schedule1_idx` (`schedule_schedule_no` ASC),
+  CONSTRAINT `fk_student_schedule1`
+    FOREIGN KEY (`schedule_schedule_no`)
+    REFERENCES `mydb`.`schedule` (`schedule_no`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`course_has_student`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`course_has_student` (
+  `course_id` INT NOT NULL,
+  `student_ssn` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`course_id`, `student_ssn`),
+  INDEX `fk_course_has_student_student1_idx` (`student_ssn` ASC),
+  INDEX `fk_course_has_student_course_idx` (`course_id` ASC),
+  CONSTRAINT `fk_course_has_student_course`
+    FOREIGN KEY (`course_id`)
+    REFERENCES `mydb`.`course` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_course_has_student_student1`
+    FOREIGN KEY (`student_ssn`)
+    REFERENCES `mydb`.`student` (`ssn`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`section_has_schedule`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`section_has_schedule` (
+  `section_id` INT NOT NULL,
+  `schedule_schedule_no` INT NOT NULL,
+  PRIMARY KEY (`section_id`, `schedule_schedule_no`),
+  INDEX `fk_section_has_schedule_schedule1_idx` (`schedule_schedule_no` ASC),
+  INDEX `fk_section_has_schedule_section1_idx` (`section_id` ASC),
+  CONSTRAINT `fk_section_has_schedule_section1`
+    FOREIGN KEY (`section_id`)
+    REFERENCES `mydb`.`section` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_section_has_schedule_schedule1`
+    FOREIGN KEY (`schedule_schedule_no`)
+    REFERENCES `mydb`.`schedule` (`schedule_no`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`professor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`professor` (
+  `professor_id` INT NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`professor_id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`section_has_professor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`section_has_professor` (
+  `section_id` INT NOT NULL,
+  `professor_professor_id` INT NOT NULL,
+  PRIMARY KEY (`section_id`, `professor_professor_id`),
+  INDEX `fk_section_has_professor_professor1_idx` (`professor_professor_id` ASC),
+  INDEX `fk_section_has_professor_section1_idx` (`section_id` ASC),
+  CONSTRAINT `fk_section_has_professor_section1`
+    FOREIGN KEY (`section_id`)
+    REFERENCES `mydb`.`section` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_section_has_professor_professor1`
+    FOREIGN KEY (`professor_professor_id`)
+    REFERENCES `mydb`.`professor` (`professor_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`major`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`major` (
+  `title` VARCHAR(80) NOT NULL,
+  `department` VARCHAR(45) NOT NULL,
+  `parent_major` VARCHAR(80) NOT NULL,
+  PRIMARY KEY (`title`),
+  INDEX `fk_major_major1_idx` (`parent_major` ASC),
+  CONSTRAINT `fk_major_major1`
+    FOREIGN KEY (`parent_major`)
+    REFERENCES `mydb`.`major` (`title`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`major_has_course`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`major_has_course` (
+  `major_title` VARCHAR(80) NOT NULL,
+  `course_id` INT NOT NULL,
+  `type` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`major_title`, `course_id`),
+  INDEX `fk_major_has_course_course1_idx` (`course_id` ASC),
+  INDEX `fk_major_has_course_major1_idx` (`major_title` ASC),
+  CONSTRAINT `fk_major_has_course_major1`
+    FOREIGN KEY (`major_title`)
+    REFERENCES `mydb`.`major` (`title`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_major_has_course_course1`
+    FOREIGN KEY (`course_id`)
+    REFERENCES `mydb`.`course` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
