@@ -1,4 +1,4 @@
-USE zthompson;
+USE schedule_assistace;
 
 LOCK TABLES section WRITE;
 

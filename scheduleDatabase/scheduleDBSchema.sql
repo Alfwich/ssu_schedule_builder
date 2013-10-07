@@ -2,6 +2,10 @@ use $DB_NAME;
 BEGIN;
 set @@foreign_key_checks = 0;
 
+DROP TABLE IF EXISTS schedule_course_instance;
+DROP TABLE IF EXISTS schedule;
+DROP TABLE IF EXISTS student_course;
+DROP TABLE IF EXISTS student;
 DROP TABLE IF EXISTS section_professor;
 DROP TABLE IF EXISTS section;
 DROP TABLE IF EXISTS professor;
@@ -51,6 +55,34 @@ CREATE TABLE section_professor (
     PRIMARY KEY (section_id, prof_id),
     FOREIGN KEY (section_id) REFERENCES section (id),
     FOREIGN KEY (prof_id) REFERENCES professor (id)
+);
+
+CREATE TABLE student (
+    id                  varchar(9)      NOT NULL PRIMARY KEY,
+    fname               varchar(20)     NOT NULL,
+    lname               varchar(20)     NOT NULL
+);
+
+CREATE TABLE student_course (
+    student_id          varchar(9)      NOT NULL,
+    course_id           integer         NOT NULL,
+    PRIMARY KEY (student_id, course_id),
+    FOREIGN KEY (student_id) REFERENCES student (id),
+    FOREIGN KEY (course_id) REFERENCES course (id)
+);
+
+CREATE TABLE schedule (
+    id                  integer         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    student_id          varchar(9)      NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES student (id)
+);
+
+CREATE TABLE schedule_course_instance (
+    schedule_id         integer         NOT NULL,
+    course_instance_id  integer         NOT NULL,
+    PRIMARY KEY (schedule_id, course_instance_id),
+    FOREIGN KEY (schedule_id) REFERENCES schedule (id),
+    FOREIGN KEY (course_instance_id) REFERENCES course_instance (id)
 );
 
 set @@foreign_key_checks = 1;
