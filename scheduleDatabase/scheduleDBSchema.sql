@@ -2,11 +2,12 @@ use $DB_NAME;
 BEGIN;
 set @@foreign_key_checks = 0;
 
+DROP TABLE IF EXISTS section_professor;
 DROP TABLE IF EXISTS schedule_course_instance;
 DROP TABLE IF EXISTS schedule;
 DROP TABLE IF EXISTS student_course;
 DROP TABLE IF EXISTS student;
-DROP TABLE IF EXISTS section_professor;
+DROP TABLE IF EXISTS section_time;
 DROP TABLE IF EXISTS section;
 DROP TABLE IF EXISTS professor;
 DROP TABLE IF EXISTS course_instance;
@@ -24,23 +25,28 @@ CREATE TABLE course (
 CREATE TABLE course_instance (
     id                  integer         NOT NULL PRIMARY KEY,
     course_id           integer         NOT NULL,
-    instance_no         varchar(2)      NOT NULL,
     FOREIGN KEY (course_id)
         REFERENCES course (id)
 );
 
 CREATE TABLE section (
-    id                  integer         NOT NULL PRIMARY KEY,
+    id                  char(4)         NOT NULL PRIMARY KEY,
     course_instance_id  integer         NOT NULL,
-    class_no            integer         NOT NULL,
-    section_no          varchar(4)      NOT NULL,
+    section_no          integer         NOT NULL,
     location            varchar(16),
-    days                varchar(8),
-    start_time          varchar(8),
-    end_time            varchar(8),
     component           varchar(4),
     FOREIGN KEY (course_instance_id)
         REFERENCES course_instance (id)
+);
+
+CREATE TABLE section_time (
+    section_id          char(4)         NOT NULL,
+    day                 varchar(3)      NOT NULL,
+    start_time          char(4)         NOT NULL,
+    end_time            char(4)         NOT NULL,
+    PRIMARY KEY (section_id, day, start_time),
+    FOREIGN KEY (section_id)
+        REFERENCES section(id)
 );
 
 CREATE TABLE professor (
@@ -50,7 +56,7 @@ CREATE TABLE professor (
 );
 
 CREATE TABLE section_professor (
-    section_id          integer         NOT NULL,
+    section_id          char(4)         NOT NULL,
     prof_id             varchar(9)      NOT NULL,
     PRIMARY KEY (section_id, prof_id),
     FOREIGN KEY (section_id) REFERENCES section (id),
