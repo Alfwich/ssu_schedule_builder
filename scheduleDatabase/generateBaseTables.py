@@ -154,10 +154,15 @@ class SectionParser:
         pattern = self.row['Pat']
         day_list = list()
         if pattern != "ARR":
+            if pattern == "FIVE":
+                pattern = "MTWHF"
             num = 0
             for c in pattern:
                 if c == 'H':
-                    day_list[-1] = 'TH'
+                    if day_list[-1] == 'T':
+                        day_list[-1] = 'TH'
+                    else:
+                        day_list.append('TH')
                 else:
                     day_list.append(c)
         else:
