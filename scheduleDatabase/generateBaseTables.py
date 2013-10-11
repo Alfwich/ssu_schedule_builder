@@ -169,7 +169,7 @@ class SectionParser:
             day_list.append("ARR")
 
         for day in day_list:
-            next_entry = self.row['Cls#'] + day + self.row['START TIME']
+            next_entry = self.row['Cls#'] + day + self.row['START TIME'] + self.row['Facil ID']
             if next_entry not in self.parsed_times:
                 self.parsed_times.add(next_entry)
                 self.section_times.append(self.sql_section_time_output(day))
@@ -204,14 +204,14 @@ class SectionParser:
 
 
     def sql_section_output(self):
-        return [self.row['Cls#'], self.instance_id, self.row['Sct'], 
-                self.row['Facil ID'], self.row['Component']]
+        return [self.row['Cls#'], self.instance_id, 
+                self.row['Sct'], self.row['Component']]
 
 
     def sql_section_time_output(self, day):
         start_time = self.parse_time(self.row['START TIME'])
         end_time = self.parse_time(self.row['END TIME'])
-        return [self.row['Cls#'], day, start_time, end_time]
+        return [self.row['Cls#'], day, start_time, end_time, self.row['Facil ID']]
 
     def sql_section_professor_output(self):
         return [self.row['Cls#'], self.row['ID']]

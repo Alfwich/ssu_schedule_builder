@@ -33,7 +33,6 @@ CREATE TABLE section (
     id                  char(4)         NOT NULL PRIMARY KEY,
     course_instance_id  integer         NOT NULL,
     section_no          integer         NOT NULL,
-    location            varchar(16),
     component           varchar(4),
     FOREIGN KEY (course_instance_id)
         REFERENCES course_instance (id)
@@ -42,9 +41,10 @@ CREATE TABLE section (
 CREATE TABLE section_time (
     section_id          char(4)         NOT NULL,
     day                 varchar(3)      NOT NULL,
-    start_time          char(4)         NOT NULL,
-    end_time            char(4)         NOT NULL,
-    PRIMARY KEY (section_id, day, start_time),
+    start_time          char(4), 
+    end_time            char(4),
+    location            varchar(16),
+    PRIMARY KEY (section_id, day, start_time, location),
     FOREIGN KEY (section_id)
         REFERENCES section(id)
 );
