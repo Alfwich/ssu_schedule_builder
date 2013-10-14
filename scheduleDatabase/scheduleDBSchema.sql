@@ -2,6 +2,11 @@ use $DB_NAME;
 BEGIN;
 set @@foreign_key_checks = 0;
 
+DROP TABLE IF EXISTS student_major;
+DROP TABLE IF EXISTS major_department;
+DROP TABLE IF EXISTS department;
+DROP TABLE IF EXISTS major_requirement;
+DROP TABLE IF EXISTS major;
 DROP TABLE IF EXISTS section_professor;
 DROP TABLE IF EXISTS schedule_course_instance;
 DROP TABLE IF EXISTS schedule;
@@ -91,5 +96,42 @@ CREATE TABLE schedule_course_instance (
     FOREIGN KEY (course_instance_id) REFERENCES course_instance (id)
 );
 
+CREATE TABLE major (
+    id                  integer         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    title               varchar(50)     NOT NULL UNIQUE,
+    super_major         integer,
+    FOREIGN KEY (super_major) REFERENCES major (id)
+);
+
+CREATE TABLE major_requirement (
+    major_id            integer         NOT NULL,
+    course_id           integer         NOT NULL,
+    typ                 varchar(10)     NOT NULL,
+    PRIMARY KEY (major_id, course_id),
+    FOREIGN KEY (major_id) REFERENCES major (id),
+    FOREIGN KEY (course_id) REFERENCES course (id)
+);
+
+CREATE TABLE student_major (
+    major_id            integer         NOT NULL,
+    student_id          varchar(9)      NOT NULL,
+    PRIMARY KEY (major_id, student_id),
+    FOREIGN KEY (major_id) REFERENCES major (id),
+    FOREIGN KEY (student_id) REFERENCES student (id)
+);
+
+CREATE TABLE department (
+    id                  integer         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    title               varchar(50)     NOT NULL
+);
+
+CREATE TABLE major_department (
+    major_id            integer         NOT NULL,
+    department_id       integer         NOT NULL,
+    PRIMARY KEY (major_id, department_id),
+    FOREIGN KEY (major_id) REFERENCES major (id),
+    FOREIGN KEY (department_id) REFERENCES department(id)
+);
+    
 set @@foreign_key_checks = 1;
 COMMIT;
