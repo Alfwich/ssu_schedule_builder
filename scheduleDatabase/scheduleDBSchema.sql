@@ -107,7 +107,6 @@ CREATE TABLE major_requirement (
     major_id            integer         NOT NULL,
     course_id           integer         NOT NULL,
     typ                 varchar(10)     NOT NULL,
-    PRIMARY KEY (major_id, course_id),
     FOREIGN KEY (major_id) REFERENCES major (id),
     FOREIGN KEY (course_id) REFERENCES course (id)
 );
