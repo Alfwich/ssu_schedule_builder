@@ -1,8 +1,8 @@
 #! /bin/bash
 
-export DB_USER=zthompson
-export DB_PASS=000807877
-export DB_NAME=schedule_assistace
+export DB_USER=dbuser
+export DB_PASS=dbpass
+export DB_NAME=dbname
 
 export CSV_FILE=campus_2013_Report.csv
 
