@@ -14,7 +14,9 @@ echo 'Creating DB schema ends'
 
 python generateBaseTables.py
 
-for dataFile in course.sql professor.sql course_instance.sql section.sql section_professor.sql; do
+for dataFile in course.sql professor.sql course_instance.sql section.sql \
+    section_professor.sql student.sql schedule.sql major.sql section_time.sql \
+    schedule_course_instance.sql major_requirement.sql; do
     echo "Poplulating table $(echo $dataFile | sed 's/\.sql//')."
     mysql --password=$DB_PASS --user=$DB_USER < $dataFile
     echo "Poplulating table $(echo $dataFile | sed 's/\.sql//') completed."

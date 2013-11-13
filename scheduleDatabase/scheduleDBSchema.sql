@@ -2,7 +2,17 @@ use $DB_NAME;
 BEGIN;
 set @@foreign_key_checks = 0;
 
+DROP TABLE IF EXISTS student_major;
+DROP TABLE IF EXISTS major_department;
+DROP TABLE IF EXISTS department;
+DROP TABLE IF EXISTS major_requirement;
+DROP TABLE IF EXISTS major;
 DROP TABLE IF EXISTS section_professor;
+DROP TABLE IF EXISTS schedule_course_instance;
+DROP TABLE IF EXISTS schedule;
+DROP TABLE IF EXISTS student_course;
+DROP TABLE IF EXISTS student;
+DROP TABLE IF EXISTS section_time;
 DROP TABLE IF EXISTS section;
 DROP TABLE IF EXISTS professor;
 DROP TABLE IF EXISTS course_instance;
@@ -20,23 +30,28 @@ CREATE TABLE course (
 CREATE TABLE course_instance (
     id                  integer         NOT NULL PRIMARY KEY,
     course_id           integer         NOT NULL,
-    instance_no         varchar(2)      NOT NULL,
     FOREIGN KEY (course_id)
-        REFERENCES course (id)
+        REFERENCES course (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE section (
-    id                  integer         NOT NULL PRIMARY KEY,
+    id                  char(4)         NOT NULL PRIMARY KEY,
     course_instance_id  integer         NOT NULL,
-    class_no            integer         NOT NULL,
-    section_no          varchar(4)      NOT NULL,
-    location            varchar(16),
-    days                varchar(8),
-    start_time          varchar(8),
-    end_time            varchar(8),
+    section_no          integer         NOT NULL,
     component           varchar(4),
     FOREIGN KEY (course_instance_id)
-        REFERENCES course_instance (id)
+        REFERENCES course_instance (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE section_time (
+    section_id          char(4)         NOT NULL,
+    day                 varchar(3)      NOT NULL,
+    start_time          char(4), 
+    end_time            char(4),
+    location            varchar(16),
+    PRIMARY KEY (section_id, day, start_time, location),
+    FOREIGN KEY (section_id)
+        REFERENCES section(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE professor (
@@ -46,12 +61,76 @@ CREATE TABLE professor (
 );
 
 CREATE TABLE section_professor (
-    section_id          integer         NOT NULL,
+    section_id          char(4)         NOT NULL,
     prof_id             varchar(9)      NOT NULL,
     PRIMARY KEY (section_id, prof_id),
-    FOREIGN KEY (section_id) REFERENCES section (id),
-    FOREIGN KEY (prof_id) REFERENCES professor (id)
+    FOREIGN KEY (section_id) REFERENCES section (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (prof_id) REFERENCES professor (id) ON UPDATE CASCADE
 );
 
+CREATE TABLE student (
+    id                  varchar(9)      NOT NULL PRIMARY KEY,
+    fname               varchar(20)     NOT NULL,
+    lname               varchar(20)     NOT NULL
+);
+
+CREATE TABLE student_course (
+    student_id          varchar(9)      NOT NULL,
+    course_id           integer         NOT NULL,
+    PRIMARY KEY (student_id, course_id),
+    FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES course (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE schedule (
+    id                  integer         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    student_id          varchar(9)      NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE schedule_course_instance (
+    schedule_id         integer         NOT NULL,
+    course_instance_id  integer         NOT NULL,
+    PRIMARY KEY (schedule_id, course_instance_id),
+    FOREIGN KEY (schedule_id) REFERENCES schedule (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (course_instance_id) REFERENCES course_instance (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE major (
+    id                  integer         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    title               varchar(50)     NOT NULL UNIQUE,
+    super_major         integer,
+    FOREIGN KEY (super_major) REFERENCES major (id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE major_requirement (
+    major_id            integer         NOT NULL,
+    course_id           integer         NOT NULL,
+    typ                 varchar(10)     NOT NULL,
+    FOREIGN KEY (major_id) REFERENCES major (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES course (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE student_major (
+    major_id            integer         NOT NULL,
+    student_id          varchar(9)      NOT NULL,
+    PRIMARY KEY (major_id, student_id),
+    FOREIGN KEY (major_id) REFERENCES major (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE department (
+    id                  integer         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    title               varchar(50)     NOT NULL
+);
+
+CREATE TABLE major_department (
+    major_id            integer         NOT NULL,
+    department_id       integer         NOT NULL,
+    PRIMARY KEY (major_id, department_id),
+    FOREIGN KEY (major_id) REFERENCES major (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+    
 set @@foreign_key_checks = 1;
 COMMIT;

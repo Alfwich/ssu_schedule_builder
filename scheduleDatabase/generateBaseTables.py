@@ -20,6 +20,7 @@ def main():
     printer.write("section", parser.sections())
     printer.write("professor", parser.professors())
     printer.write("section_professor", parser.section_professors())
+    printer.write("section_time", parser.section_times())
 
 
 def strip_whitespace(row):
@@ -66,6 +67,9 @@ class ScheduleParser:
     def professors(self):
         return self.professor_parser.professors
 
+    def section_times(self):
+        return self.section_parser.section_times
+
 
 class InstanceChecker:
 
@@ -105,15 +109,23 @@ class InstanceChecker:
 class SectionParser:
 
     def __init__(self, id_holder):
-        self.id_holder = id_holder
+
+        #Input for sql writer
         self.course_instances = list()
         self.sections = list()
         self.section_professors = list()
+        self.section_times = list()
+
+        #Helper classes
+        self.id_holder = id_holder
         self.instance_checker = InstanceChecker()
+
+        #Helper members
+        self.parsed_prof_sections = set()
+        self.parsed_times = set()
+        self.parsed_sections = set()
         self.cur_instance = list()
         self.row = dict()
-        self.instance_num = 1
-        self.section_id = 1
         self.instance_id = 1
 
 
@@ -129,39 +141,85 @@ class SectionParser:
             else:
                 self.course_instances.append(self.sql_instance_output())
                 self.instance_id += 1
-                self.update_instance_num()
                 self.cur_instance = [self.row]
         else:
             self.cur_instance.append(self.row)
 
-        self.sections.append(self.sql_section_output())
-        self.section_professors.append(self.sql_section_professor_output())
-        self.section_id += 1
+        # only add section a section once
+        if self.row['Cls#'] not in self.parsed_sections:
+            self.parsed_sections.add(self.row['Cls#'])
+            self.sections.append(self.sql_section_output())
 
-
-
-    def update_instance_num(self):
-        self.prev_row = self.cur_instance[0]
-        if self.instance_checker.same_course(self.row, self.cur_instance[0]):
-            self.instance_num += 1
+        # only add a time if it isn't a duplicate time (like two professors teaching one section or one section in two locations)
+        pattern = self.row['Pat']
+        day_list = list()
+        if pattern != "ARR":
+            if pattern == "FIVE":
+                pattern = "MTWHF"
+            num = 0
+            for c in pattern:
+                if c == 'H':
+                    if day_list[-1] == 'T':
+                        day_list[-1] = 'TH'
+                    else:
+                        day_list.append('TH')
+                else:
+                    day_list.append(c)
         else:
-            self.instance_num = 1
+            day_list.append("ARR")
+
+        for day in day_list:
+            next_entry = self.row['Cls#'] + day + self.row['START TIME'] + self.row['Facil ID']
+            if next_entry not in self.parsed_times:
+                self.parsed_times.add(next_entry)
+                self.section_times.append(self.sql_section_time_output(day))
+
+        # only add professor if they haven't been added for the current section
+        prof_section = self.row['ID'] + self.row['Cls#']
+        if prof_section not in self.parsed_prof_sections:
+            self.parsed_prof_sections.add(prof_section)
+            self.section_professors.append(self.sql_section_professor_output())
+
+
+    # Input: "10:00 AM", Output: "1000"
+    def parse_time(self, time):
+        if time:
+            hour = time[:2]
+            minute = time[3:5]
+
+            if time[6:8] == "AM":
+                if hour != "12":
+                    return hour + minute
+                else:
+                    return "00" + minute
+
+            else:
+                if hour != "12":
+                    return str(int(hour) + 12) + minute
+                else:
+                    return hour + minute
+
+        else:
+            return ""
 
 
     def sql_section_output(self):
-        return [self.section_id, self.instance_id, self.row['Cls#'],
-                self.row['Sct'], self.row['Facil ID'], self.row['Pat'], 
-                self.row['START TIME'], self.row['END TIME'], self.row['Component']]
+        return [self.row['Cls#'], self.instance_id, 
+                self.row['Sct'], self.row['Component']]
 
+
+    def sql_section_time_output(self, day):
+        start_time = self.parse_time(self.row['START TIME'])
+        end_time = self.parse_time(self.row['END TIME'])
+        return [self.row['Cls#'], day, start_time, end_time, self.row['Facil ID']]
 
     def sql_section_professor_output(self):
-        return [self.section_id, self.row['ID']]
+        return [self.row['Cls#'], self.row['ID']]
 
     def sql_instance_output(self):
         course_row = self.cur_instance[0]
         return [self.instance_id, 
-                self.id_holder.get_course_id(course_row['Sbjt'] + course_row['Cat#']),
-                self.instance_num]
+                self.id_holder.get_course_id(course_row['Sbjt'] + course_row['Cat#'])]
 
 
 class ProfessorParser:
