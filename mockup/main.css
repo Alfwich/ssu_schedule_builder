@@ -1,0 +1,55 @@
+#container {
+  margin: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 800px;
+  height: 100%;
+}
+
+.first.box {
+  margin-left: 0;
+  display: inline-block;
+}
+
+.box {
+  margin-left: 200px;
+  display: none;
+  width: 200px;
+  height: 100%;
+}
+
+.first:hover .second {
+  display: inline-block;
+}
+
+.second:hover .third {
+  display: inline-block;
+}
+
+.third:hover .fourth {
+  display: inline-block;
+}
+
+.red {
+  background-color: red;
+}
+
+.yellow {
+  background-color: yellow;
+}
+
+.blue {
+  background-color: blue;
+}
+
+.green {
+  background-color: green;
+}
+
+.circle {
+  border-radius: 100px;
+}
+

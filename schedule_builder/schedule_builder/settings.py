@@ -1,5 +1,6 @@
 # Django settings for schedule_builder project.
 import os
+import django.conf.global_settings as DEFAULT_SETTINGS
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -80,6 +81,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'dajaxice.finders.DajaxiceFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
@@ -90,7 +92,11 @@ SECRET_KEY = '7+_-(0mlk*o!ww+*atj(3h8ijzwpyd^4)#2eo7z(r^@n6=q^^h'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    'django.template.loaders.eggs.Loader',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
+    'django.core.context_processors.request',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -121,6 +127,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'dajaxice',
+    'ssu',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
