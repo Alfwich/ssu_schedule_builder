@@ -1,1 +1,19 @@
-{{ hello_message }}
+{% load dajaxice_templatetags %}
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+        {% dajaxice_js_import %}
+        <script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>
+        <script>
+            $(function() {
+                $('#query').keyup(function() {
+                    Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <input type="text" value="" id="query">
+        <div id="course_list"></div>
+    </body>
+</html>
