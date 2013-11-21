@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SSU Scheduler</title>
+	<script src="script/js/jquery-1.10.2.min.js"></script>
+	<script src="script/js/global.js"></script>	
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>	
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css" />	
+	<link rel="stylesheet" href="style/global.css" type="text/css" />
+</head>
+<body>
+<div id="application">
+	
+	<div id="side_window">
+		<a class="logo" href="http://www.sonoma.edu" target="blank"></a>
+		<ul class="no_select">
+			<li>Menu Item 1</li>
+			<li>Menu Item 2</li>
+			<li>Menu Item 3</li>
+		</ul>
+	</div>
+	
+	<!-- Begin Application Windows -->
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Tab 1</div>
+		</div>
+		<div class="content">
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="InitContextMenu( this );" />
+		</div>
+	</div>
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Tab 2</div>
+		</div>
+		<div class="content">
+			<h2>Hello World 2!</h2>
+		</div>
+	</div>
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Tab 3</div>
+		</div>
+		<div class="content">
+			<h2>Hello World 3!</h2>
+		</div>
+	</div>
+	<!-- End Application Windows -->
+	
+</div>
+</body>
+</html>
