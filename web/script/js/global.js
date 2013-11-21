@@ -1,6 +1,6 @@
 // Application globals
 var current_window = -1;
-var sideMenuSize = 0;
+var sideMenuSize = 300;
 var windowAnimationOptions = { duration: 200, easing: "linear" };
 var contextMenuAnimation = { duration: 100 };
 var labelWidth = 50;
@@ -19,9 +19,6 @@ function Init()
 	// Application shortcut
 	application = $("#application");
 	
-	// Side window 
-	sideMenuSize = $("#side_window").width();
-
 	// Setup window array and give each window an ID
 	// This weird looking .each statement will add the windows in reverse order
 	var i = 1;
