@@ -8,6 +8,13 @@ var application = null;
 var windows = [];
 var resizeDelay = false;
 
+var TEST_MENU = 
+{
+	"Test Item 1":0,
+	"Test Item 2":{ "Test Item 4": 1},			
+	"Test Item 3":2,
+};
+
 
 
 ///////////////////////////////////
@@ -128,31 +135,36 @@ function SetupWindows()
 
 // Will init a context menu at a location on the screen
 //	target: The callback object to pass the results of the menu operations
-function InitContextMenu( target )
+function ContextMenu( target, menu )
 {
 	// Create the context menu object
 	var context = $("<div>",{
 		class:"context_window",
+		level:0,
 	});
 	
 	var menu_list = $("<ul>",{
 	});
 	context.append( menu_list );
 	
-	var list_item = $("<li>",{
-		text:"Test Item 1",
-	});	
-	menu_list.append( list_item );
+	for( var node in menu )
+	{
+		var list_item = $("<li>",{
+			text:node,
+			target:target,
+		});	
+		
+		// If the node contains a subnode then give hook to open that menu on hover
+		if( typeof( menu[node] ) === 'object' )
+		{
+			$(list_item).text( node + " >" );
+			
+			
+		}
+		
+		menu_list.append( list_item );
+	}
 	
-	var list_item = $("<li>",{
-		text:"Test Item 2",
-	});	
-	menu_list.append( list_item );
-
-	var list_item = $("<li>",{
-		text:"Test Item 3",
-	});	
-	menu_list.append( list_item );	
 	
 	var x = $(target).offset().left;
 	var y = $(target).offset().top;
@@ -172,6 +184,7 @@ function InitContextMenu( target )
 		var top = $(context).offset().top;
 		var bottom = top + $(context).height();
 		
+		// Close the menu if the user leaves the context window
 		if( e.clientX > right || e.clientX < left ||
 			e.clientY > bottom || e.clientY < top )
 		{
@@ -188,6 +201,14 @@ function InitContextMenu( target )
 	});
 }
 
+// Will open a root level of a context menu
+function ContextNode( node )
+{
+	// Create the context menu object
+	var root = $("<div>",{
+		class:"context_window",
+	});
+}
 
 
 

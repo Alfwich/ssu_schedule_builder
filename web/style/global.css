@@ -121,6 +121,7 @@ Arthur Wuterich
 {
 	list-style-type: none;
 	padding: 0px;
+	margin: 0px;
 }
 
 #side_window li, .context_window li
@@ -143,12 +144,15 @@ Arthur Wuterich
 .context_window
 {
 	position: absolute;
-	width: 500px;
-	height: 500px;
+	width: 300px;
 	background-color: #FFF;
 	z-index: 5;
 	border: 1px solid #DDD;
 	border-radius: 3px;
+	-moz-box-shadow: 5px 5px #888;
+	-webkit-box-shadow: 5px 5px #888;
+	box-shadow: 5px 5px #888	
+	
 }
 
 
