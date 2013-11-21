@@ -8,6 +8,7 @@ class Course(models.Model):
     id = models.IntegerField(primary_key=True)
     subject = models.CharField(max_length=6L)
     catalog_no = models.CharField(max_length=6L)
+    subject_no = models.CharField(max_length=12L)
     title = models.CharField(max_length=50L)
     units = models.CharField(max_length=6L)
     ge_code = models.CharField(max_length=8L, blank=True)

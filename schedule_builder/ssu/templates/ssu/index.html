@@ -9,11 +9,25 @@
                 $('#query').keyup(function() {
                     Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
                 });
+                $('#search').click(function() {
+                    $('#query').show();
+                    $('#query').focus();
+                });
+                $('#query').hide();
             });
         </script>
+        <style type="text/css">
+            #added_courses { width: 300px; }
+        </style>
+            
     </head>
     <body>
-        <input type="text" value="" id="query">
-        <div id="course_list"></div>
+        <div id="added_courses"></div>
+        <div id="next">
+            <button id="search">Search</button>
+            <button id="category">Category</button>
+            <input type="text" value="" id="query">
+            <div id="course_list"></div>
+        </div>
     </body>
 </html>
