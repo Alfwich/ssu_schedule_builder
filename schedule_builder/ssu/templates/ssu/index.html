@@ -7,9 +7,26 @@
         <script>
             $(function() {
                 $('#query').keyup(function(e) {
-                    if (e.keyCode == 13 && $('#course_list button').length == 1) {
-                        $('#course_list button').click();
+                    if (e.keyCode == 13 && $('#course_list .selected button').length > 0) {
+                        $('#course_list .selected button').click();
                     }
+
+                    else if (e.keyCode == 40) {
+                        selected = $('#course_list .selected');
+                        if (selected.next().length == 1) {
+                            selected.removeClass('selected');
+                            selected.next().addClass('selected');
+                        }
+                    }
+
+                    else if (e.keyCode == 38) {
+                        selected = $('#course_list .selected');
+                        if (selected.prev().length == 1) {
+                            selected.removeClass('selected');
+                            selected.prev().addClass('selected');
+                        }
+                    }
+
                     else {
                         Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
                     }
@@ -31,6 +48,7 @@
         <style type="text/css">
             #added_courses { width: 300px; }
             #search_area { display: inline-block; vertical-align: top; }
+            .selected { background-color: yellow; }
         </style>
             
     </head>
@@ -40,7 +58,7 @@
             <button id="search">Search</button>
             <button id="category">Category</button>
             <div id="search_area">
-                <input type="text" value="" id="query">
+                <input type="text" value="" id="query" autocomplete="off">
                 <div id="course_list"></div>
             </div>
         </div>
