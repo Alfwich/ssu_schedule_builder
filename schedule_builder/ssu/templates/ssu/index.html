@@ -6,18 +6,31 @@
         <script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>
         <script>
             $(function() {
-                $('#query').keyup(function() {
-                    Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
+                $('#query').keyup(function(e) {
+                    if (e.keyCode == 13 && $('#course_list button').length == 1) {
+                        $('#course_list button').click();
+                    }
+                    else {
+                        Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
+                    }
                 });
                 $('#search').click(function() {
-                    $('#query').show();
+                    $('#search_area').show();
                     $('#query').focus();
                 });
-                $('#query').hide();
+                $('#search_area').hide();
             });
+
+            function add_course(id) {
+                $('#query').val('');
+                $('#course_list').html('');
+                Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
+                $('#query').focus();
+            }
         </script>
         <style type="text/css">
             #added_courses { width: 300px; }
+            #search_area { display: inline-block; vertical-align: top; }
         </style>
             
     </head>
@@ -26,8 +39,10 @@
         <div id="next">
             <button id="search">Search</button>
             <button id="category">Category</button>
-            <input type="text" value="" id="query">
-            <div id="course_list"></div>
+            <div id="search_area">
+                <input type="text" value="" id="query">
+                <div id="course_list"></div>
+            </div>
         </div>
     </body>
 </html>

@@ -6,8 +6,6 @@ from ssu.models import Course
 from dajax.core import Dajax
 import random
 
-added_courses = []
-
 @dajaxice_register
 def sayhello(request):
     return simplejson.dumps({'message':'Hello Ajax'})
@@ -26,7 +24,7 @@ def find_courses(request, query):
     out = []
 
     for course in courses:
-        out.append("<div><span>%s - %s</span><button onClick='Dajaxice.ssu.add_course(Dajax.process, { course_id: %d })'>Add</button></div>" % (str(course), course.title, course.id))
+        out.append("<div><span>%s - %s</span><button onClick='add_course(%d)'>Add</button></div>" % (str(course), course.title, course.id))
 
     dajax.assign('#course_list', 'innerHTML', ''.join(out))
 
@@ -36,9 +34,6 @@ def find_courses(request, query):
 def add_course(request, course_id):
     dajax = Dajax()
     course = Course.objects.get(id=course_id)
-
-    added_courses.append(course_id)
-    print added_courses
 
     out = "<p>%s - % s</p>" % ( str(course), course.title )
 

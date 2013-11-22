@@ -22,6 +22,7 @@ CREATE TABLE course (
     id                  integer         NOT NULL PRIMARY KEY,
     subject             varchar(6)      NOT NULL,
     catalog_no          varchar(6)      NOT NULL,
+    subject_no          varchar(12)     NOT NULL,
     title               varchar(50)     NOT NULL,
     units               varchar(6)      NOT NULL,
     ge_code             varchar(8)

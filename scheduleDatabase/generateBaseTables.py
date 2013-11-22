@@ -269,6 +269,7 @@ class CourseParser:
 
     def sql_output(self):
         return [self.course_id, self.row['Sbjt'], self.row['Cat#'], 
+                self.row['Sbjt'] + self.row['Cat#'],
                 self.row['Descr'], self.row['SUV'],
                 self.row['Designation']]
 
