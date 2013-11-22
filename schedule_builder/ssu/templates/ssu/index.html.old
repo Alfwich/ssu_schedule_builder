@@ -6,7 +6,7 @@
         <script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>
         <script>
             $(function() {
-                $('#search > input').keyup(function(e) {
+                $('#search > .area input').keyup(function(e) {
                     if (e.keyCode == 13 && $('#course_list .selected button').length > 0) {
                         $('#course_list .selected button').click();
                     }
@@ -31,80 +31,72 @@
                         Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
                     }
                 });
-                $('.search.option').click(function() {
-                    $('#level3').hide();
-                    $('#level2').show();
-                    $('.category.area').hide();
-                    $('.search.area').show();
-                    $('.search.area > input').focus();
+                $('#search > .option').click(function() {
+                    $('#category > .area').hide();
+                    $('#search > .area').show();
+                    $('#search > .area input').focus();
                 });
-                $('.category.option').click(function() {
-                    $('#level3').hide();
-                    $('#level2').show();
-                    $('.search.area').hide();
-                    $('.category.area').show();
+                $('#category > .option').click(function() {
+                    $('#search > .area').hide();
+                    $('#category > .area').show();
                 });
-                $('.major.option').click(function() {
-                    $('#level3').show();
-                    $('.ge.area').hide();
-                    $('.major.area').show();
+                $('#major > .option').click(function() {
+                    $('#ge > .area').hide();
+                    $('#major > .area').show();
                 });
-                $('.ge.option').click(function() {
-                    $('#level3').show();
-                    $('.major.area').hide();
-                    $('.ge.area').show();
+                $('#ge > .option').click(function() {
+                    $('#major > .area').hide();
+                    $('#ge_area').show();
                 });
-                $('#level2').hide();
-                $('#level3').hide();
+                $('#search > .area').hide();
+                $('#category > .area').hide();
             });
 
             function add_course(id) {
-                $('.search.area > input').val('');
+                $('#search > .area input').val('');
                 $('#course_list').html('');
                 Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
-                $('.search.area > input').focus();
+                $('#search > .area input').focus();
             }
         </script>
         <style type="text/css">
             #course_list span { display: inline-block; width: 300px; }
             #added_courses { width: 300px; }
-            .level { display: inline-block; vertical-align: top; margin-top: 5px; }
-            .area { margin-top: 5px; }
+            .area { display: inline-block; vertical-align: top; margin-top: 5px; }
             .selected { background-color: yellow; }
-            .option { background-color: #214583; display: block; height: 20px; cursor: pointer;
+            .option { background-color: #214583; display: inline-block; height: 20px; cursor: pointer;
                 padding: 5px; color: #eee; margin: 5px; font-weight: bold; border-radius: 5px;
                 text-align: center; }
-            #level1 { width: 100px; }
+            .level1 { width: 75px; }
         </style>
             
     </head>
     <body>
         <div id="added_courses"></div>
         <div id="next">
-            <div class="level" id="level1">
-                <div class="search option">Search</div>
-                <div class="category option">Category</div>
-            </div>
-
-            <div class="level" id="level2">
-                <div class="search area">
+            <div id="search"> 
+                <div class="option level1">Search</div>
+                <div class="area">
                     <input type="text" value="" autocomplete="off">
                     <div id="course_list"></div>
                 </div>
-                <div class="category area">
-                    <div class="major option">Major</div>
-                    <div class="ge option">General Ed</div>
+            </div>
+            <div id="category">
+                <div class="option level1">Category</div>
+                <div class="area">
+                    <div id="major">
+                        <div class="option">Major</div>
+                        <div class="area">
+                            <input type="text" value="" autocomplete="off">
+                            <div id="major_list"></div>
+                        </div>
+                    </div>
+                    <div id="ge">
+                        <div class="option">General Ed</div>
+                        <div class="area"></div>
+                    </div>
                 </div>
             </div>
-
-            <div class="level" id="level3">
-                <div class="major area">
-                    <input type="text" value="" autocomplete="off">
-                    <div id="major_list"></div>
-                </div>
-                <div class="ge area"></div>
-            </div>
-
         </div>
     </body>
 </html>
