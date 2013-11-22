@@ -1,0 +1,175 @@
+/* 
+SSU Schedule Maker Framework
+11/20/2013
+Arthur Wuterich 
+*/
+
+/* Application wrapper */
+#application
+{
+	position:absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	margin: auto;
+	overflow:hidden;
+	background-color:#D8D8D8;
+	width: 100%;
+	height: 100%;
+}
+
+/* Global Application */
+#application *
+{
+	font-family: arial;
+}
+
+.window
+{
+	position: absolute;
+	left: 2500px;	
+	height: 100%;
+	background-color: #FFF;
+}
+
+.window .bar
+{
+	height: 100%;
+	float: left;
+	
+	background-color: #005CA8;
+	color: #FFFFFF;
+	font-weight: bold;
+	width: 50px;
+	overflow: hidden;
+	white-space: nowrap;
+	border-left: 2px solid #008CFF;
+	cursor: pointer;
+
+	transition:background-color .2s;
+	-webkit-transition:background-color .2s; /* Safari */	
+	
+}
+.window .bar:hover
+{
+	background-color: #008CFF; 
+}
+.window .label_wrapper
+{
+	position: relative;
+	top: 150px;
+}
+
+.window .content
+{
+	width: 100%;
+	height: 100%;
+	padding: 50px;
+	padding-left: 100px;
+}
+
+/* Rotation css for label titles */
+.rotate 
+{
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+
+	/* also accepts left, right, top, bottom coordinates; not required, but a good idea for styling */
+	-webkit-transform-origin: 50% 50%;
+	-moz-transform-origin: 50% 50%;
+	-ms-transform-origin: 50% 50%;
+	-o-transform-origin: 50% 50%;
+	transform-origin: 50% 50%;
+
+	/* Should be unset in IE9+ I think. */
+	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+}
+
+.no_select
+{
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#side_window
+{
+	width: 300px;
+	height: 100%;
+	float:left;
+	background-color: #FFF;
+}
+
+#side_window .logo
+{
+	width: 100%;
+	height: 130px;
+	
+	display: block;
+	background-size: 100% 100%;
+	background-image: url( "../image/sonoma_logo.jpg" );
+}
+
+#side_window ul, .context_window ul
+{
+	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+#side_window li, .context_window li
+{
+	padding: 25px 0px 25px 0px;
+	width: 100%;
+	text-align: center;
+	border-bottom: 2px solid #DDD;
+	
+	transition:background-color .2s;
+	-webkit-transition:background-color .2s; /* Safari */	
+	cursor: pointer;	
+}
+
+#side_window li:hover, .context_window li:hover
+{
+	background-color: #DDD;
+}
+
+.context_window
+{
+	position: absolute;
+	width: 300px;
+	background-color: #FFF;
+	z-index: 5;
+	border: 1px solid #DDD;
+	border-radius: 3px;
+	-moz-box-shadow: 5px 5px #888;
+	-webkit-box-shadow: 5px 5px #888;
+	box-shadow: 5px 5px #888	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
