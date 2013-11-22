@@ -1,4 +1,4 @@
-USE $DB_NAME;
+USE schedule;
 
 LOCK TABLES section_professor WRITE;
 

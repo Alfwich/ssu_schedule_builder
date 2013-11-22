@@ -1,48 +1,69 @@
 {% load dajaxice_templatetags %}
+<!DOCTYPE html>
 <html>
-    <head>
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
-        {% dajaxice_js_import %}
-        <script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>
-        <script>
-            $(function() {
-                $('#query').keyup(function(e) {
-                    if (e.keyCode == 13 && $('#course_list button').length == 1) {
-                        $('#course_list button').click();
-                    }
-                    else {
-                        Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
-                    }
-                });
-                $('#search').click(function() {
-                    $('#search_area').show();
-                    $('#query').focus();
-                });
-                $('#search_area').hide();
-            });
-
-            function add_course(id) {
-                $('#query').val('');
-                $('#course_list').html('');
-                Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
-                $('#query').focus();
-            }
-        </script>
-        <style type="text/css">
-            #added_courses { width: 300px; }
-            #search_area { display: inline-block; vertical-align: top; }
-        </style>
-            
-    </head>
-    <body>
-        <div id="added_courses"></div>
-        <div id="next">
-            <button id="search">Search</button>
-            <button id="category">Category</button>
-            <div id="search_area">
-                <input type="text" value="" id="query">
-                <div id="course_list"></div>
-            </div>
-        </div>
-    </body>
+<head>
+	<title>SSU Scheduler</title>
+	{% dajaxice_js_import %}
+	<script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>	
+	<script src="/static/script/js/jquery-1.10.2.min.js"></script>
+	<script src="/static/script/js/global.js"></script>	
+	<script src="/static/script/js/bootstrap.min.js"></script>	
+	<link rel="stylesheet" href="/static/style/bootstrap.min.css" />
+	<link rel="stylesheet" href="/static/style/bootstrap-theme.min.css" />
+	<link rel="stylesheet" href="/static/style/global.css" type="text/css" />
+</head>
+<body>
+<div id="application">
+	
+	<div id="side_window">
+		<a class="logo" href="http://www.sonoma.edu" target="blank"></a>
+		<ul class="no_select">
+			<li>Menu Item 1</li>
+			<li>Menu Item 2</li>
+			<li>Menu Item 3</li>
+		</ul>
+	</div>
+	
+	<!-- Begin Application Windows -->
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Tab 1</div>
+		</div>
+		<div class="content">
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+		</div>
+	</div>
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Tab 2</div>
+		</div>
+		<div class="content">
+			<div id="added_courses"></div>
+			<div id="next">
+				<button id="search">Search</button>
+				<button id="category">Category</button>
+				<div id="search_area">
+					<input type="text" value="" id="query">
+					<div id="course_list"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Tab 3</div>
+		</div>
+		<div class="content">
+			<h2>Hello World 3!</h2>
+		</div>
+	</div>
+	<!-- End Application Windows -->
+	
+</div>
+</body>
 </html>

@@ -1,4 +1,4 @@
-USE zthompson;
+USE schedule;
 
 LOCK TABLES professors WRITE;
 
