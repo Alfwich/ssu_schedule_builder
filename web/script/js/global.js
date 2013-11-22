@@ -11,7 +11,15 @@ var resizeDelay = false;
 var TEST_MENU = 
 {
 	"Test Item 1":0,
-	"Test Item 2":{ "Test Item 4": 1},			
+	"Test Item 2":
+		{ 
+			"Test Item 4": 1,
+			"Test Item 5": 3,
+			"Test Item 6": 
+				{
+					"Text Item 7": 4,
+				},
+		},			
 	"Test Item 3":2,
 };
 
@@ -132,17 +140,44 @@ function SetupWindows()
 ///////////////////////////////////
 //////////CONTEXT MENUS////////////
 ///////////////////////////////////
+var levels = 0;
+var menuOffset = { "x": 50, "y": 0 };
+var context_callbackObject = null;
+
+// Inits the context menu
+function ContextInit( target )
+{
+	// Close all other context menus
+	$(".context_window").remove();
+	levels = 0;
+
+	// Show the new menu
+	ContextMenu( target, TEST_MENU, target );
+}
 
 // Will init a context menu at a location on the screen
 //	target: The callback object to pass the results of the menu operations
-function ContextMenu( target, menu )
+function ContextMenu( target, menu, callback )
 {
+	// If the callback object is defined set it
+	if( callback != undefined )
+	{
+		context_callbackObject = callback;
+	}
+
+	// If the target has the 'context_open' class then exit
+	if( $(target).hasClass( "context_open" ))
+	{
+		return;
+	}
+
 	// Create the context menu object
 	var context = $("<div>",{
 		class:"context_window",
-		level:0,
+		level:levels,
 	});
-	
+
+	$(context).css( { "z-index": levels+5 } );
 	var menu_list = $("<ul>",{
 	});
 	context.append( menu_list );
@@ -151,66 +186,95 @@ function ContextMenu( target, menu )
 	{
 		var list_item = $("<li>",{
 			text:node,
-			target:target,
+			key:node,
 		});	
 		
 		// If the node contains a subnode then give hook to open that menu on hover
 		if( typeof( menu[node] ) === 'object' )
 		{
 			$(list_item).text( node + " >" );
-			
-			
+			$(list_item).mouseover(function(e){
+				var key = $(this).attr("key");
+				ContextMenu( this, menu[key] );
+			});
 		}
-		
+		// else make this object send its value on click
+		else
+		{
+			$(list_item).click( function(e){
+
+				// Set the value of the object *** REFACTOR later into a callback function ***
+				var key = $(this).attr("key");
+				$(context_callbackObject).attr( "value", key );
+				$(context_callbackObject).attr( "data", menu[key] );
+
+
+				/* Remove the context menu(s)
+				$(".context_window").fadeOut( contextMenuAnimation.duration, function(e){
+					$(this).remove();
+				});		
+				*/
+				$(".context_window").remove();
+				levels = 0;
+			});
+		}
 		menu_list.append( list_item );
 	}
 	
-	
-	var x = $(target).offset().left;
-	var y = $(target).offset().top;
-		
-	// Set into position
-	$(context).css( { "left":x, "top":y } );
-	
+	var x = 0;
+	var y = 0;
 	$(context).fadeIn( contextMenuAnimation.duration );
 	
-	// Add to the application window
-	$(application).append( context );
+	// Add to the application window IF this is the first menu
+	if( levels == 0 )
+	{
+		x = $(target).offset().left + menuOffset.x;
+		y = $(target).offset().top + menuOffset.y;
 	
+		$(application).append( context );
+	}
+	// else add it to the target
+	else
+	{
+		x = $(target).position().left + menuOffset.x;
+		y = $(target).position().top + menuOffset.y;
+		
+		$(target).append( context );
+		$(target).addClass( "context_open" );
+	}
+
+	// Set into position
+	$(context).css( { "left":x, "top":y } );
+
 	// Bind an event to close the context window
-	$(application).bind( "mousemove", function(e){
+	$(application).bind( "mousemove.context_"+levels, function(e){
 		var left = $(context).offset().left;
 		var right = left + $(context).width();
 		var top = $(context).offset().top;
 		var bottom = top + $(context).height();
+		var level= $(context).attr("level");
 		
 		// Close the menu if the user leaves the context window
-		if( e.clientX > right || e.clientX < left ||
-			e.clientY > bottom || e.clientY < top )
+		if( ( 	e.clientX > right || e.clientX < left ||
+			e.clientY > bottom || e.clientY < top ) && ( levels-1 == level ) )
 		{
 			// Remove the context menu(s)
-			$(".context_window").fadeOut( contextMenuAnimation.duration, function(e){
+			$(context).fadeOut( contextMenuAnimation.duration, function(e){
 				$(this).remove();
 			});		
+
+			$(target).removeClass( "context_open" );
 			
-			// Remove the event
-			$(application).unbind( "mousemove" );			
-			
+			// Remove the event for the context level
+			levels--;
+			$(application).unbind( "mousemove.context_"+levels );
 		}
 		
 	});
+
+	// Increase the context menu event levels for proper event removal
+	levels++;
 }
-
-// Will open a root level of a context menu
-function ContextNode( node )
-{
-	// Create the context menu object
-	var root = $("<div>",{
-		class:"context_window",
-	});
-}
-
-
 
 
 

@@ -146,7 +146,6 @@ Arthur Wuterich
 	position: absolute;
 	width: 300px;
 	background-color: #FFF;
-	z-index: 5;
 	border: 1px solid #DDD;
 	border-radius: 3px;
 	-moz-box-shadow: 5px 5px #888;
@@ -154,8 +153,6 @@ Arthur Wuterich
 	box-shadow: 5px 5px #888	
 	
 }
-
-
 
 
 
