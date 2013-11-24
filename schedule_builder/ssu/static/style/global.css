@@ -163,13 +163,13 @@ Arthur Wuterich
 
 .calendar
 {
-	width: 1100px;
-	height: 600px;
+	height: 50%;
+	width: 100%;
 }
 
 .week_day
 {
-	width: 150px;
+	width: 14%;
 	height: 100%;
 	float:left;
 	border-right: 1px solid #EEE;	
@@ -207,14 +207,17 @@ Arthur Wuterich
 	border-top-right-radius: 3px;
 	border-bottom-right-radius: 3px;
 }
+.class_block_wrapper
+{
+	position: relative;
+}
 .class_block
 {
-	width:149px;
+	position: absolute;	
 	background-color: #d0efd0;
 	border: 1px solid #97da97;	
 	transition:background-color .2s;
     -moz-transition: background-color .2s;
-	position: absolute;	
 }
 .class_block:hover
 {

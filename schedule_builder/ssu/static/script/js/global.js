@@ -2,7 +2,6 @@
 var current_window = 0;
 var sideMenuSize = 300;
 var windowAnimationOptions = { duration: 200, easing: "linear" };
-var contextMenuAnimation = { duration: 100 };
 var labelWidth = 50;
 var application = null;
 var windows = [];
@@ -64,6 +63,12 @@ function BindAutoComplete( obj )
     });	
 }
 
+function ResizeElements()
+{
+	LoadSchedule( currentSchedule );
+	SetupWindows();
+}
+
 // Bind events to objects 
 function BindEvents()
 {
@@ -74,7 +79,8 @@ function BindEvents()
 		{
 			clearTimeout(resizeDelay);
 		}
-		resizeDelay = setTimeout(SetupWindows, 200);
+		
+		resizeDelay = setTimeout(ResizeElements, 0);
 	});
 	
 	// Give the labels a on click event for opening their window
@@ -95,13 +101,9 @@ function BindEvents()
 		mouse.x = e.clientX;
 		mouse.y = e.clientY;
 	});
-	
-	$(".class_block").click( function(e){
-		ContextInit( this, classBlockMenu, ClassBlockCallback );
-	});
-	
+		
 	$(".slot").click( function(e){
-		ContextInit( this, slotMenu, MenuCallback );
+		ContextInit( this, context.slotMenu, MenuCallback );
 	});
 	
 	$(".schedule_inputs").children(".next").click( NextSchedule );
@@ -166,7 +168,7 @@ function SetupWindows()
 	// Set the width of each panel
 	$(".window").each(function(){
 		var windowId = $(this).attr("id");
-		$(this).css( { "z-index":(windows.length-windowId), "width":($(application).width()) } );
+		$(this).css( { "z-index":(windows.length-windowId), "width":($(application).width()-sideMenuSize) } );
 	});
 	
 	// Close all of the windows
@@ -182,53 +184,56 @@ function SetupWindows()
 ///////////////////////////////////
 //////////CONTEXT MENUS////////////
 ///////////////////////////////////
-var depth = 0;
-var menuOffset = { "x": 140, "y": 0 };
-var menuDepthObject = {};
-
-var slotMenu = 
+var context = 
 {
-	"Search":SearchSelection,
-	"Category":
+	contextMenuAnimation:{ duration: 100 },
+	depth:0,
+	menuOffset:{ "x": 140, "y": 0 },
+	slotMenu: 
 	{
-		"GE":
+		"Search":SearchSelection,
+		"Category":
+		{
+			"GE":
+				{
+					"A":
+					{
+						"1": "A1",
+						"2": "A2",
+						"3": "A3",
+					},
+					"B":
+					{
+						"1": "B1",
+						"2": "B2",
+						"3": "B3",
+					},
+					"C":"C",
+					"D":
+					{
+						"1": "D1", 
+						"2": "D2", 
+						"3": "D3", 
+						"4": "D4", 
+						"5": "D5",
+					},
+					"E":"E",
+				},
+			"Major Requirment":
 			{
-				"A":
-				{
-					"1": "A1",
-					"2": "A2",
-					"3": "A3",
-				},
-				"B":
-				{
-					"1": "B1",
-					"2": "B2",
-					"3": "B3",
-				},
-				"C":"C",
-				"D":
-				{
-					"1": "D1", 
-					"2": "D2", 
-					"3": "D3", 
-					"4": "D4", 
-					"5": "D5",
-				},
-				"E":"E",
+				"CS":"CS: Major",
 			},
-		"Major Requirment":
-		{
-			"CS":"CS: Major",
+			"Major Elective":
+			{
+				"CS":"CS: Minor",		
+			},		
 		},
-		"Major Elective":
-		{
-			"CS":"CS: Minor",		
-		},		
 	},
-};
-var classBlockMenu = 
-{
-	"Remove Class":"Remove",
+	
+	classBlockMenu:
+	{
+		"Remove Class":"Remove",
+	},
 };
 function SearchSelection( node, callback )
 {
@@ -299,9 +304,14 @@ function ContextInit( target, menu, callback )
 
 function CloseAllContextMenus()
 {
-	depth = 0;
+	context.depth = 0;
 	$("#application").unbind( "mousedown.context" );
-	$(".context_window").remove();
+	$(".context_window").each(function(e){
+		$(this).attr("level", "-1");
+		$(this).fadeOut( context.contextMenuAnimation.duration, function(e){
+			$(this).remove();
+		});
+	});
 }
 
 function ContextMenu( target, menu, callback )
@@ -309,7 +319,7 @@ function ContextMenu( target, menu, callback )
 	// Create the window
 	var window = $("<div>",{
 		class:"context_window",
-		level:depth
+		level:context.depth
 	});
 	
 	// Create the menu object
@@ -349,8 +359,12 @@ function ContextMenu( target, menu, callback )
 				var compareWindowDepth = parseInt($(this).attr("level") );
 				if( compareWindowDepth > origDepth )
 				{
-					depth--;
-					$(this).remove();
+					context.depth--;
+					$(this).attr("level", "");
+					$(this).stop();
+					$(this).fadeOut( context.contextMenuAnimation.duration, function(e){
+						$(this).remove();
+					});
 				}
 				
 				// Remove the selected border for all elements of the current window
@@ -387,7 +401,7 @@ function ContextMenu( target, menu, callback )
 		context_menu.append( menu_selection );
 	}	
 	// Position at the mouse pointer if the first level
-	if( depth == 0 )
+	if( context.depth == 0 )
 	{
 		$(window).css( { "left":mouse.x, "top":mouse.y } );
 	}
@@ -395,12 +409,14 @@ function ContextMenu( target, menu, callback )
 	{
 		// Move into position if not the first level
 		targetOffset = $(target).offset();
-		$(window).css( { "left":targetOffset.left+menuOffset.x,"top":targetOffset.top } );
+		$(window).css( { "left":targetOffset.left+context.menuOffset.x,"top":targetOffset.top } );
 	}
 		
 	// Add the window to the screen
+	$(window).css( { opacity:0, width:0+"px" } );
+	$(window).animate( { opacity:1, width:170+"px" }, context.contextMenuAnimation );
 	$("#application").append( window );
-	depth++;
+	context.depth++;
 }
 
 function ClassBlockCallback( value )
@@ -597,16 +613,26 @@ function AddDayBlock( title, day, start, end )
 {
 	var entries = $("."+abbrToDay[day]+".week_day").children(".entries");
 	var lengthValue = DifferenceMilitary( start, end );
-	var startValue = MilitaryFloatValue( start );
-		
+	var startValue = MilitaryFloatValue( start )-8;
+	var divWrapper = $("<div>",{
+		class:"class_block_wrapper",
+	});
 	var block = $("<div>",{
 		class:"class_block",
 	});
-		
-	$(block).css( { height: lengthValue*34, top: startValue*34 } );
-	$(block).text( title+" "+day+" "+start+" - "+end );
 	
-	$(entries).append( block );
+	$(block).click( function(e){
+		ContextInit( this, context.classBlockMenu, ClassBlockCallback );
+	});	
+	
+	var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
+	var blockWidth = $(".calendar").width() * 0.14;
+	
+	$(block).css( { height: (lengthValue*heightMultiple)+"px", top: startValue*heightMultiple, width:(blockWidth)+"px" } );
+	$(block).text( title );
+	
+	$(divWrapper).append( block );
+	$(entries).append( divWrapper );
 }
 
 
