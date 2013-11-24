@@ -28,7 +28,7 @@ Arthur Wuterich
 .window
 {
 	position: absolute;
-	left: 2500px;	
+	left: 2500px;
 	height: 100%;
 	background-color: #FFF;
 }
@@ -144,17 +144,86 @@ Arthur Wuterich
 .context_window
 {
 	position: absolute;
-	width: 300px;
+	width: 170px;
 	background-color: #FFF;
 	border: 1px solid #DDD;
 	border-radius: 3px;
 	-moz-box-shadow: 5px 5px #888;
 	-webkit-box-shadow: 5px 5px #888;
-	box-shadow: 5px 5px #888	
+	box-shadow: 5px 5px #888;
+	z-index: 1;
 	
 }
 
+.context_search
+{
+	width: 80%;
+	margin: 0px auto 0px auto;
+}
 
+.calendar
+{
+	width: 1100px;
+	height: 600px;
+}
+
+.week_day
+{
+	width: 150px;
+	height: 100%;
+	float:left;
+	border-right: 1px solid #EEE;	
+}
+.week_day .header
+{
+	color: #333;
+	font-weight: bold;
+	width:100%;
+	height: 20px;
+	text-align: center;
+	background-color: #62A4DB;
+	border-radius: 3px;
+	border-bottom: 1px solid #A0C0DB;
+}
+.calendar .monday, .calendar .wednesday, .calendar .friday
+{
+	background-color: #ABC5DB;
+}
+.calendar .tuesday, .calendar .thursday
+{
+	background-color: #C5D1DB;
+}
+.calendar .saturday, .calendar .sunday
+{
+	background-color: #D4D4D4;
+}
+.calendar .sunday
+{
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+.calendar .saturday
+{
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+.class_block
+{
+	width:149px;
+	background-color: #d0efd0;
+	border: 1px solid #97da97;	
+	transition:background-color .2s;
+    -moz-transition: background-color .2s;
+	position: absolute;	
+}
+.class_block:hover
+{
+	background-color: #A9EFA9;
+}
+.schedule_inputs
+{
+	margin-top: 10px;
+}
 
 
 

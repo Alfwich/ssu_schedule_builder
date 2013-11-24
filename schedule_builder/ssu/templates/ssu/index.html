@@ -6,10 +6,13 @@
 	{% dajaxice_js_import %}
 	<script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>	
 	<script src="/static/script/js/jquery-1.10.2.min.js"></script>
+	<script src="/static/script/js/jquery-ui-1.10.3.custom.min.js"></script>		
 	<script src="/static/script/js/global.js"></script>	
 	<script src="/static/script/js/bootstrap.min.js"></script>	
+	
 	<link rel="stylesheet" href="/static/style/bootstrap.min.css" />
 	<link rel="stylesheet" href="/static/style/bootstrap-theme.min.css" />
+	<link rel="stylesheet" href="/static/style/jquery-ui-1.10.3.custom.min.css" />
 	<link rel="stylesheet" href="/static/style/global.css" type="text/css" />
 </head>
 <body>
@@ -18,52 +21,73 @@
 	<div id="side_window">
 		<a class="logo" href="http://www.sonoma.edu" target="blank"></a>
 		<ul class="no_select">
-			<li>Menu Item 1</li>
-			<li>Menu Item 2</li>
-			<li>Menu Item 3</li>
+			<li onclick="ToggleWindow(2);">Classes</li>
+			<li class="schedule_label" onclick="ToggleWindow(1);">Schedules</li>
 		</ul>
 	</div>
 	
 	<!-- Begin Application Windows -->
 	<div class="window">
 		<div class="bar no_select">
-			<div class="rotate label_wrapper">Tab 1</div>
+			<div class="rotate label_wrapper">Classes</div>
 		</div>
 		<div class="content">
-			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
-			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
-			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
-			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
-			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
-			<input type="button" class="slot" value="Test Context Menu Button" onclick="ContextInit( this );" /><BR/>
+			<h2>Classes</h2>
+			<ul id="classes">
+			</ul>
+			<input type="button" class="slot" value="Add Classes" /><BR/>
 		</div>
 	</div>
 	<div class="window">
 		<div class="bar no_select">
-			<div class="rotate label_wrapper">Tab 2</div>
+			<div class="rotate label_wrapper schedule_label">Schedules</div>
 		</div>
 		<div class="content">
-			<div id="added_courses"></div>
-			<div id="next">
-				<button id="search">Search</button>
-				<button id="category">Category</button>
-				<div id="search_area">
-					<input type="text" value="" id="query">
-					<div id="course_list"></div>
+			<h2 class="schedule_label">Schedules</h2>
+			<div class="calendar">
+				<div class="sunday week_day">
+					<div class="header">Sunday</div>
+					<div class="entries">
+					</div>
 				</div>
+				<div class="monday week_day">
+					<div class="header">Monday</div>		
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="tuesday week_day">
+					<div class="header">Tuesday</div>			
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="wednesday week_day">
+					<div class="header">Wednesday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="thursday week_day">
+					<div class="header">Thursday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="friday week_day">
+					<div class="header">Friday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="saturday week_day">
+					<div class="header">Saturday</div>				
+					<div class="entries">
+					</div>					
+				</div>				
+			</div>
+			<div class="schedule_inputs">
+				<input type="button" class="prev" value="Previous" />
+				<input type="button" class="next" value="Next" />
 			</div>
 		</div>
 	</div>
-	<div class="window">
-		<div class="bar no_select">
-			<div class="rotate label_wrapper">Tab 3</div>
-		</div>
-		<div class="content">
-			<h2>Hello World 3!</h2>
-		</div>
-	</div>
 	<!-- End Application Windows -->
-	
 </div>
 </body>
 </html>

@@ -18,6 +18,7 @@
 		},
 	]
 }
+
 // Adding a category
 {
 	"slots":
@@ -30,6 +31,7 @@
 		},
 	]
 }
+
 // Adding a category minus a few courses
 {
 	"slots":
