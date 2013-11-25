@@ -10,56 +10,86 @@ import json
 import random
 
 @dajaxice_register
-def randomize(request):
-	dajax = Dajax()
-	dajax.assign('#query', 'value', random.randint(1, 10))
-	return dajax.json()
+def find_courses(request, query):
+    dajax = Dajax()
+
+    courses_by_subject = Course.objects.filter(subject_no__istartswith=query.replace(" ", ""))
+    courses_by_title = Course.objects.filter( Q(catalog_no__startswith=query) | Q(title__icontains=query) )
+    result_courses = list(chain(courses_by_subject, courses_by_title))[:10]
+
+
+    out = []
+
+    for index, course in enumerate(result_courses):
+        
+        if index is 0:
+            div_class = "class='selected'"
+        else:
+            div_class = ""
+
+        out.append("<div %s><span>%s - %s</span><button onClick='add_course(%d)'>Add</button></div>" % (div_class, str(course), course.title, course.id))
+
+    dajax.assign('.course.list', 'innerHTML', ''.join(out))
+
+    return dajax.json()
 
 @dajaxice_register
-def find_courses(request, query):
-	dajax = Dajax()
-	courses = Course.objects.filter( Q(subject_no__icontains=query.replace(" ", "")) | Q(title__icontains=query) )[:10]
+def populate_ge_result(request, code):
+    dajax = Dajax()
 
-	out = []
+    courses = Course.objects.filter(ge_code__iexact=code)
 
-	for course in courses:
-		out.append("<div><span>%s - %s</span><button onClick='add_course(%d)'>Add</button></div>" % (str(course), course.title, course.id))
+    out = []
 
-	dajax.assign('#course_list', 'innerHTML', ''.join(out))
+    for course in courses:
+        out.append("<div><span>%s - %s</span><input type='checkbox' name='courses' value='%s'</div>" % ( str(course), course.title, course.id ))
 
-	return dajax.json()
+    dajax.assign('.ge_result.list', 'innerHTML', ''.join(out))
+
+    dajax.script('ge_callback();')
+	
+    return dajax.json()
 
 @dajaxice_register
 def add_course(request, course_id):
-	dajax = Dajax()
-	course = Course.objects.get(id=course_id)
+    dajax = Dajax()
+    course = Course.objects.get(id=course_id)
 
-	out = "<p>%s - % s</p>" % ( str(course), course.title )
+    out = "<p>%s - % s</p>" % ( str(course), course.title )
 
-	dajax.append('#added_courses', 'innerHTML', out)
+    dajax.append('#added_courses', 'innerHTML', out)
 	
-	# Add the course to the session
-	if 'courses' in request.session:
-		request.session['courses'].append( course_id )
-	else:
-		request.session['courses'] = [ course_id ]
+    if not 'courses' in request.session:
+        request.session['courses'] = []	
 		
-	return dajax.json()
-	
-@dajaxice_register
-def get_course_data( request ):
-	courses = Course.objects.all()
-	return serializers.serialize("json", courses)
+    request.session['courses'].append( [ course_id ] )
+		
+    request.session.modified = True
+
+    return dajax.json()
 
 @dajaxice_register	
 def make_schedules( request ):
 	dajax = Dajax()
-	request.session['courses'] = [ [100, 60, 110, 87], [ 1337, 1335 ] ]
+	
+	if not 'courses' in request.session:
+		request.session['courses'] = []
+		
+	if not 'schedules' in request.session:
+		request.session['schedules'] = []	
+		
 	request.session['schedules'] = list( product( *request.session['courses'] ) )
 	return dajax.json();
 	
 @dajaxice_register
 def render_schedule( request, width, height, schedule_id ):
+
+	if not 'courses' in request.session:
+		request.session['courses'] = []
+		
+	if not 'schedules' in request.session:
+		request.session['schedules'] = []
+
 			
 	dajax = Dajax()
 	dajax.clear( '.entries', 'innerHTML' )
@@ -86,17 +116,17 @@ def render_schedule( request, width, height, schedule_id ):
 	dajax.assign( '.schedule_label', 'innerHTML', "Schedules(%s/%s)"%( str(schedule_id+1),str(len(request.session['schedules']))))
 	
 	for instance in request.session['schedules'][schedule_id]:
-		course = Course.objects.filter(id=CourseInstance.objects.filter(id=instance)[0].course_id)
+		course = Course.objects.filter(id=CourseInstance.objects.filter(id=instance)[0].course_id)[0]
 		sections = Section.objects.filter(course_instance_id=instance)
 		for section in sections:
-			block = SectionTime.objects.filter(section_id=section)
-			day = block[0].day
-			startTime = block[0].start_time.zfill(4)
-			endTime = block[0].end_time.zfill(4)
+			block = SectionTime.objects.filter(section_id=section)[0]
+			day = block.day
+			startTime = block.start_time.zfill(4)
+			endTime = block.end_time.zfill(4)
 			start = int(startTime[0:2]) + ( int(startTime[2:4]) / 60 )
 			end = int(endTime[0:2]) + ( int(endTime[2:4]) / 60 )
 			length = end-start
-			dajax.append( '.'+dayCode[day]+' .entries', 'innerHTML', scheduleBlock % ( str(length*height)+"px", str( (start-8)*height) + "px", str(width)+"px",course[0].subject_no ) )
+			dajax.append( '.'+dayCode[day]+' .entries', 'innerHTML', scheduleBlock % ( str(length*height)+"px", str( (start-8)*height) + "px", str(width)+"px",course.subject_no ) )
 
 	dajax.add_data( "", "SetScheduleEvents" )
 	return dajax.json();

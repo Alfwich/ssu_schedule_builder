@@ -1,0 +1,153 @@
+{% load dajaxice_templatetags %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SSU Scheduler</title>
+	{% dajaxice_js_import %}
+	<script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>	
+	<script src="/static/script/js/jquery-1.10.2.min.js"></script>
+	<script src="/static/script/js/jquery-ui-1.10.3.custom.min.js"></script>		
+	<script src="/static/script/js/global.js"></script>	
+	<script src="/static/script/js/bootstrap.min.js"></script>	
+	
+	<link rel="stylesheet" href="/static/style/bootstrap.min.css" />
+	<link rel="stylesheet" href="/static/style/bootstrap-theme.min.css" />
+	<link rel="stylesheet" href="/static/style/jquery-ui-1.10.3.custom.min.css" />
+	<link rel="stylesheet" href="/static/style/global.css" type="text/css" />
+</head>
+<body>
+<div id="application">
+	
+	<div id="side_window">
+		<a class="logo" href="http://www.sonoma.edu" target="blank"></a>
+		<ul class="no_select">
+			<li onclick="ToggleWindow(2);">Classes</li>
+			<li class="schedule_label" onclick="ToggleWindow(1);">Schedules</li>
+		</ul>
+	</div>
+	
+	<!-- Begin Application Windows -->
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Classes</div>
+		</div>
+		<div class="content">
+			<div id="next">
+				<div class="level" id="level1">
+					<div class="search option">Search</div>
+					<div class="category option">Category</div>
+				</div>
+
+				<div class="level" id="level2">
+					<div class="search area">
+						<input type="text" value="" autocomplete="off">
+						<div class="course list"></div>
+					</div>
+					<div class="category area">
+						<div class="major option">Major</div>
+						<div class="ge option">General Ed</div>
+					</div>
+				</div>
+
+				<div class="level" id="level3">
+					<div class="major area">
+						<input type="text" value="" autocomplete="off">
+						<div class="major list"></div>
+					</div>
+					<div class="ge area">
+						<div class="a option">A - Communication and Critical Thinking</div>
+						<div class="b option">B - Natural Sciences and Mathematics</div>
+						<div class="c option">C - Humanities</div>
+						<div class="d option">D - Social Sciences</div>
+						<div class="e option">E - The Integrated Person</div>
+					</div>
+				</div>
+				
+				<div class="level" id="level4">
+					<div class="a area">
+						<div id="a2" class="ge-final option">A2 - Fundamentals of Communication</div>
+						<div id="a3" class="ge-final option">A3 - Critical Thinking</div>
+					</div>
+					<div class="b area">
+						<div id="b1" class="ge-final option">B1 - Physical Sciences</div>
+						<div id="b2" class="ge-final option">B2 - Biological Sciences</div>
+						<div id="b3" class="ge-final option">B3 - Specific Emphasis</div>
+						<div id="b4" class="ge-final option">B4 - Mathematical Concepts</div>
+					</div>
+					<div class="c area">
+						<div id="c1" class="ge-final option">C1 - Fine Arts</div>
+						<div id="c2" class="ge-final option">C2 - Literature, Philosophy, Values</div>
+						<div id="c3" class="ge-final option">C3 - Comparative Perspectives / Foreign Language</div>
+					</div>
+					<div class="d area">
+						<div id="d1" class="ge-final option">D1 - Individual and Society</div>
+						<div id="d2" class="ge-final option">D2 - World History and Civilization</div>
+						<div id="d3" class="ge-final option">D3 - United States History</div>
+						<div id="d4" class="ge-final option">D4 - US Constitution, State and Local Gov</div>
+						<div id="d5" class="ge-final option">D5 - Contemporary International Perspectives</div>
+					</div>
+					<div class="e area">
+						<div id="e" class="ge-final option">E1 - The Integrated Person</div>
+					</div>
+				</div>
+				<div class="level" id="level5">
+					<div class="ge-final area">
+						<div data="" class="ge_result list"></div>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</div>
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper schedule_label">Schedules</div>
+		</div>
+		<div class="content">
+			<h2 class="schedule_label">Schedules</h2>
+			<div class="calendar">
+				<div class="sunday week_day">
+					<div class="header">Sunday</div>
+					<div class="entries">
+					</div>
+				</div>
+				<div class="monday week_day">
+					<div class="header">Monday</div>		
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="tuesday week_day">
+					<div class="header">Tuesday</div>			
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="wednesday week_day">
+					<div class="header">Wednesday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="thursday week_day">
+					<div class="header">Thursday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="friday week_day">
+					<div class="header">Friday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="saturday week_day">
+					<div class="header">Saturday</div>				
+					<div class="entries">
+					</div>					
+				</div>				
+			</div>
+			<div class="schedule_inputs">
+				<input type="button" class="prev" value="Previous" />
+				<input type="button" class="next" value="Next" />
+			</div>
+		</div>
+	</div>
+	<!-- End Application Windows -->
+</div>
+</body>
+</html>

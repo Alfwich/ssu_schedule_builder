@@ -560,6 +560,85 @@ function CalcSchedules( course_id )
 }
 
 
+$(function() {
+	$('.search.area > input').keyup(function(e) {
+		if (e.keyCode == 13 && $('.course.list .selected button').length > 0) {
+			$('.course.list .selected button').click();
+		}
+
+		else if (e.keyCode == 40) {
+			selected = $('.course.list .selected');
+			if (selected.next().length == 1) {
+				selected.removeClass('selected');
+				selected.next().addClass('selected');
+			}
+		}
+
+		else if (e.keyCode == 38) {
+			selected = $('.course.list .selected');
+			if (selected.prev().length == 1) {
+				selected.removeClass('selected');
+				selected.prev().addClass('selected');
+			}
+		}
+
+		else {
+			Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() });
+		}
+	});
+
+	$('.ge-final.option').hover(function() {
+		Dajaxice.ssu.populate_ge_result(Dajax.process, { code: 'ge' + $(this).attr('id') });
+	});
+
+	$('.option').hover(function() {
+		level_object = $(this).parent();
+		if ( level_object.attr('id') == undefined ) level_object = level_object.parent();
+		next_level = parseInt(level_object.attr('id').slice(-1)) + 1;
+		hide_levels_above(next_level);
+		$('#level' + next_level).show();
+		$('#level' + next_level).offset( { top: $(this).offset().top } );
+		$('#level' + next_level).children().hide();
+		$('#level' + next_level + ' .' + $(this).attr('class').split(" ")[0]).show();
+	});
+
+	hide_levels_above(1);
+});
+
+var ge_selected = {}
+
+function ge_change() {
+	if (this.checked) {
+		ge_selected[this.value] = true;
+	}
+	else {
+		delete ge_selected[this.value];
+	}
+}
+
+function hide_levels_above(level) {
+	while ( (level_to_hide = $('#level' + ++level)).length != 0 ) level_to_hide.hide();
+}
+
+function add_course(id) {
+	$('.search.area > input').val('');
+	$('.course.list').html('');
+	Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
+	$('.search.area > input').focus();
+}
+
+function ge_callback() {
+	boxes = $('.ge_result.list input[type=checkbox]');
+	boxes.change(ge_change);
+	for (var i = 0; i < boxes.length; ++i) {
+		if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
+	}
+	$('.ge_result.list input[type=checkbox]').change(ge_change);
+}
+
+
+
+
 
 
 
