@@ -1,10 +1,10 @@
 USE schedule;
 
-LOCK TABLES professor WRITE;
+LOCK TABLES professors WRITE;
 
 SET foreign_key_checks = 0;
 
-INSERT INTO professor VALUES
+INSERT INTO professors VALUES
 ("004378756","Jennifer","Jacobs"),
 ("003234756","Alexis","Boutin"),
 ("004394837","Stephanie","Etting"),

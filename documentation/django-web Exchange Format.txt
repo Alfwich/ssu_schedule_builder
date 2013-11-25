@@ -1,0 +1,66 @@
+//	Packet for a single class
+//	slots: Array of slot objects to manipulate
+//		id: The id of the slot on both the web end and the django end
+//		type: Are we manipulating a single course or a category of courses?
+//		data: The category or course we are using
+//		not: If specified will negate the course ids from a category
+
+// Examples
+// Adding a single course
+{
+	"slots":
+	[
+		{
+			"id":0,
+			"type":"course",
+			"data":"1234",
+			"not":[],
+		},
+	]
+}
+
+// Adding a category
+{
+	"slots":
+	[
+		{
+			"id":1,
+			"type":"category",
+			"data":"A4",
+			"not":[],
+		},
+	]
+}
+
+// Adding a category minus a few courses
+{
+	"slots":
+	[
+		{
+			"id":2,
+			"type":"category",
+			"data":"B1",
+			"not":[ 4321, 5567 ],
+		},
+	]
+}
+
+// Adding multiple classes / category
+{
+	"slots":
+	[
+		{
+			"id":3,
+			"type":"course",
+			"data":"1234",
+			"not":[],
+		},
+		{
+			"id":4,
+			"type":"category",
+			"data":"A2",
+			"not":[],
+		},
+	]
+}
+		

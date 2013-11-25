@@ -1,99 +1,37 @@
 {% load dajaxice_templatetags %}
+<!DOCTYPE html>
 <html>
-    <head>
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
-        {% dajaxice_js_import %}
-        <script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>
-        <script>
-            $(function() {
-                $('.search.area > input').keyup(function(e) {
-                    if (e.keyCode == 13 && $('.course.list .selected button').length > 0) {
-                        $('.course.list .selected button').click();
-                    }
-
-                    else if (e.keyCode == 40) {
-                        selected = $('.course.list .selected');
-                        if (selected.next().length == 1) {
-                            selected.removeClass('selected');
-                            selected.next().addClass('selected');
-                        }
-                    }
-
-                    else if (e.keyCode == 38) {
-                        selected = $('.course.list .selected');
-                        if (selected.prev().length == 1) {
-                            selected.removeClass('selected');
-                            selected.prev().addClass('selected');
-                        }
-                    }
-
-                    else {
-                        Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() });
-                    }
-                });
-
-                $('.ge-final.option').hover(function() {
-                    Dajaxice.ssu.populate_ge_result(Dajax.process, { code: 'ge' + $(this).attr('id') });
-                });
-
-                $('.option').hover(function() {
-                    level_object = $(this).parent();
-                    if ( level_object.attr('id').length == 0) level_object = level_object.parent();
-                    next_level = parseInt(level_object.attr('id').slice(-1)) + 1;
-                    hide_levels_above(next_level);
-                    $('#level' + next_level).show();
-                    $('#level' + next_level).offset( { top: $(this).offset().top } );
-                    $('#level' + next_level).children().hide();
-                    $('#level' + next_level + ' .' + $(this).attr('class').split(" ")[0]).show();
-                });
-
-                hide_levels_above(1);
-            });
-
-            var ge_selected = {}
-
-            function ge_change() {
-                if (this.checked) {
-                    ge_selected[this.value] = true;
-                }
-                else {
-                    delete ge_selected[this.value];
-                }
-            }
-
-            function hide_levels_above(level) {
-                while ( (level_to_hide = $('#level' + ++level)).length != 0 ) level_to_hide.hide();
-            }
-
-            function add_course(id) {
-                $('.search.area > input').val('');
-                $('.course.list').html('');
-                Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
-                $('.search.area > input').focus();
-            }
-
-            function ge_callback() {
-                boxes = $('.ge_result.list input[type=checkbox]');
-                boxes.change(ge_change);
-                for (var i = 0; i < boxes.length; ++i) {
-                    if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
-                }
-                $('.ge_result.list input[type=checkbox]').change(ge_change);
-            }
-        </script>
-        <style type="text/css">
-            .list span { display: inline-block; width: 300px; font-size: 12px; }
-            #added_courses { width: 300px; font-size: 12px; }
-            .level { display: inline-block; vertical-align: top; margin: 0 10px; }
-            .selected { background-color: yellow; }
-            .option { background-color: #214583; display: block; height: 20px; cursor: pointer;
-                padding: 5px; color: #eee; margin-bottom: 5px; font-weight: bold; border-radius: 5px;
-                text-align: center; font-size: 13px; }
-            #level1 { width: 100px; margin-top: 5px; }
-        </style>
-            
-    </head>
-    <body>
+<head>
+	<title>SSU Scheduler</title>
+	{% dajaxice_js_import %}
+	<script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>	
+	<script src="/static/script/js/jquery-1.10.2.min.js"></script>
+	<script src="/static/script/js/jquery-ui-1.10.3.custom.min.js"></script>		
+	<script src="/static/script/js/global.js"></script>	
+	<script src="/static/script/js/bootstrap.min.js"></script>	
+	
+	<link rel="stylesheet" href="/static/style/bootstrap.min.css" />
+	<link rel="stylesheet" href="/static/style/bootstrap-theme.min.css" />
+	<link rel="stylesheet" href="/static/style/jquery-ui-1.10.3.custom.min.css" />
+	<link rel="stylesheet" href="/static/style/global.css" type="text/css" />
+</head>
+<body>
+<div id="application">
+	
+	<div id="side_window">
+		<a class="logo" href="http://www.sonoma.edu" target="blank"></a>
+		<ul class="no_select">
+			<li onclick="ToggleWindow(2);">Classes</li>
+			<li class="schedule_label" onclick="ToggleWindow(1);">Schedules</li>
+		</ul>
+	</div>
+	
+	<!-- Begin Application Windows -->
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper">Classes</div>
+		</div>
+		<div class="content">
         <div id="added_courses"></div>
         <div id="next">
             <div class="level" id="level1">
@@ -158,6 +96,59 @@
                     <div data="" class="ge_result list"></div>
                 </div>
             </div>
-        </div>
-    </body>
+        </div>		
+		</div>
+	</div>
+	<div class="window">
+		<div class="bar no_select">
+			<div class="rotate label_wrapper schedule_label">Schedules</div>
+		</div>
+		<div class="content">
+			<h2 class="schedule_label">Schedules</h2>
+			<div class="calendar">
+				<div class="sunday week_day">
+					<div class="header">Sunday</div>
+					<div class="entries">
+					</div>
+				</div>
+				<div class="monday week_day">
+					<div class="header">Monday</div>		
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="tuesday week_day">
+					<div class="header">Tuesday</div>			
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="wednesday week_day">
+					<div class="header">Wednesday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="thursday week_day">
+					<div class="header">Thursday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="friday week_day">
+					<div class="header">Friday</div>				
+					<div class="entries">
+					</div>					
+				</div>
+				<div class="saturday week_day">
+					<div class="header">Saturday</div>				
+					<div class="entries">
+					</div>					
+				</div>				
+			</div>
+			<div class="schedule_inputs">
+				<input type="button" class="prev" value="Previous" />
+				<input type="button" class="next" value="Next" />
+			</div>
+		</div>
+	</div>
+	<!-- End Application Windows -->
+</div>
+</body>
 </html>

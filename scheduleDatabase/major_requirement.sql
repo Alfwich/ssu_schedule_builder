@@ -1,4 +1,4 @@
-USE $DB_NAME;
+USE schedule;
 
 SET foreign_key_checks = 0;
 
