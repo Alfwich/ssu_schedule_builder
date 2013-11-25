@@ -95,7 +95,6 @@ def add_course(request, course_id):
 
 @dajaxice_register	
 def make_schedules( request ):
-    dajax = Dajax()
 
     if not 'courses' in request.session:
         request.session['courses'] = []
@@ -105,24 +104,30 @@ def make_schedules( request ):
 
     request.session['schedules'] = list( product( *request.session['courses'] ) )
     request.session.modified = True
-    return dajax.json();
+  
+    return len( request.session['schedules'] )
 
 @dajaxice_register
 def get_schedules( request, start, end ):
     schedules = []
     
+	# Make sure that there are schedules to process
     if not 'schedules' in request.session:
         request.session['schedules'] = []
         return
     
+	# If end is 0 then return all of the schedules
     if( end == 0 ):
         end = len(request.session['schedules'])
         
+    if( start < 0 ):
+        start = 0
+    
+	# If there are no schedules return an empty array
     if( len(request.session['schedules']) <= 0 ):
-        return
-        
-    print( len(request.session['schedules']) )
-        
+        return []
+    
+    # Convert each schedule into a json object
     for schedule in range( start, end ):
         courses = []
         for instance in request.session['schedules'][schedule]:
@@ -131,12 +136,16 @@ def get_schedules( request, start, end ):
             sections = Section.objects.filter(course_instance_id=instance)
             for section in sections:
                 block = SectionTime.objects.filter(section_id=section)[0]
-                times.append( { "day":block.day, "start":block.start_time, "end":block.end_time } );
                 
+                # Add the times to the course object
+                times.append( { "day":block.day, "start":block.start_time, "end":block.end_time } );
+            
+            # Add the course to the course array
             courses.append( { "title":course.title, "subject":course.subject_no, "times":times } )
      
         schedules.append( courses )
     
+    # Return the data to the client
     return json.dumps( schedules )
     
 	

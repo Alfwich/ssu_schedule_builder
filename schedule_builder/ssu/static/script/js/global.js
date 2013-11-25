@@ -237,6 +237,11 @@ var context =
 	classBlockMenu:
 	{
 		"Remove Class":"Remove",
+        "Remove Time":
+            {
+                "All tn this Time":"Remove",
+                "All After this Time":"Remove",
+            },
 	},
 };
 function SearchSelection( node, callback )
@@ -433,6 +438,8 @@ function ClassBlockCallback( value )
 ///////////////////////////////////
 var schedules = [];
 var currentSchedule = 0;
+var scheduleLimit = { min:0, max:0 };
+var scheduleStep = 0;
 var maxSchedules = 0;
 
 function ClearSchedule()
@@ -476,20 +483,8 @@ function LoadSchedule( schedule_id )
 	ClearSchedule();
 	
 	// Set labels to the current schedules
-	$(".schedule_label").text( "Schedules( "+(schedule_id+1)+"/"+schedules.length+")");
-	
-    /*
-	for( var c in schedules[schedule_id] )
-	{
-        
-		var course = schedules[schedule_id];
-		for( var b in course.times )
-		{
-            var block = course.times[b];
-			AddDayBlock( course.subject, block.day, block.start, block.end );
-		}
-	}
-    */
+	$(".schedule_label").text( "Schedules( "+(schedule_id+1+scheduleLimit.min)+"/"+(schedules.length)+")");
+
     for( var c in schedules[schedule_id] )
     {
         var course = schedules[schedule_id][c];
@@ -501,26 +496,54 @@ function LoadSchedule( schedule_id )
     }
 }
 
+function ResetScheduleLimit( direction )
+{
+    scheduleLimit.min += ( scheduleStep * direction );
+    scheduleLimit.max += ( scheduleStep * direction );
+    
+    if( scheduleLimit.min < 0 )
+    {
+        scheduleLimit.min = 0;
+    }
+    
+    if( scheduleLimit.max > maxSchedules-1 )
+    {
+        scheduleLimit.max = maxSchedules-1;
+    }
+    
+    currentSchedule = scheduleStep;
+    GetScheduleData( scheduleLimit.min, scheduleLimit.max );
+}
+
 function NextSchedule()
 {
 	currentSchedule++;
-	if( currentSchedule >= maxSchedules )
+    if( currentSchedule > maxSchedules-1 )
+    {
+        currentSchedule = maxSchedules-1;
+    }
+	if( (currentSchedule+scheduleLimit.min) == scheduleLimit.max-1 )
 	{
-		currentSchedule = 0;
+		//ResetScheduleLimit( 1 );
 	}
-	
-	LoadSchedule( currentSchedule );
+    	
+	LoadSchedule( currentSchedule ); 
 }
 
 function PrevSchedule()
 {
 	currentSchedule--;
-	if( currentSchedule < 0 )
+    if( currentSchedule < 0 )
+    {
+        currentSchedule = 0;
+    }   
+    
+	if( (currentSchedule+scheduleLimit.min) == scheduleLimit.min+1 && scheduleLimit.min != 0 )
 	{
-		currentSchedule = maxSchedules-1;
+		//ResetScheduleLimit( -1 );
 	}
 	
-	LoadSchedule( currentSchedule );
+	LoadSchedule( currentSchedule );   
 }
 
 function AddDayBlock( title, day, start, end )
@@ -566,7 +589,6 @@ function RenderSchedule( schedule )
 {
 	Dajaxice.ssu.render_schedule( Dajax.process, { width:($(".calendar").width() * 0.14)-1, height:( $(".calendar").height() - 20 ) / 16, schedule_id:schedule } );
 }
-*/
 
 function SetScheduleEvents( data )
 {
@@ -574,6 +596,7 @@ function SetScheduleEvents( data )
 		ContextInit( this, context.classBlockMenu, ClassBlockCallback );
 	});
 }
+*/
 
 function AddCourse( course_id )
 {
@@ -582,8 +605,8 @@ function AddCourse( course_id )
 
 function CalcSchedules()
 {
-	Dajaxice.ssu.make_schedules( Dajax.process );
-    GetScheduleData( 0, 0 );
+    // Process the schedules on the python end
+	Dajaxice.ssu.make_schedules( SetMaxNumberOfSchedules );
 }
 
 function RemoveCourse( course_id )
@@ -592,18 +615,30 @@ function RemoveCourse( course_id )
     Dajaxice.ssu.make_schedules( Dajax.process );
 }
 
+// Callback for django to set the total number of schedules
+function SetMaxNumberOfSchedules( data )
+{
+    maxSchedules = data;
+    scheduleLimit.min = 0;
+    scheduleLimit.max = 0;
+    GetScheduleData( 0, 0 );
+}
+
 function GetScheduleData( start, end )
 {
+    currentSchedule = 0;
     Dajaxice.ssu.get_schedules( ScheduleData, { start:start, end:end } );
 }
 
 function ScheduleData( data )
 {
     currentSchedule = 0;
-    maxSchedules = data.length;
-    schedules = data;
-    console.log( "done" );
-    $(".schedule_label").text( "Schedules( "+(currentSchedule+1)+"/"+maxSchedules+")");
+    $(".schedule_label").text( "Schedules( "+(currentSchedule+1+scheduleLimit.min)+"/"+(schedules.length)+")");
+    if( data instanceof Array )
+    {
+        schedules = data;
+        console.log( "done" );
+    }
 }
 
 function ToConsole( data )
