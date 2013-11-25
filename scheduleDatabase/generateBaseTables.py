@@ -211,10 +211,10 @@ class SectionParser:
     def sql_section_time_output(self, day):
         start_time = self.parse_time(self.row['START TIME'])
         end_time = self.parse_time(self.row['END TIME'])
-        return [self.row['Cls#'], day, start_time, end_time, self.row['Facil ID']]
+        return ["NULL", self.row['Cls#'], day, start_time, end_time, self.row['Facil ID']]
 
     def sql_section_professor_output(self):
-        return [self.row['Cls#'], self.row['ID']]
+        return ["NULL", self.row['Cls#'], self.row['ID']]
 
     def sql_instance_output(self):
         course_row = self.cur_instance[0]

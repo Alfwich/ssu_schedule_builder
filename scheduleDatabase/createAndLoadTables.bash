@@ -10,7 +10,7 @@ echo 'Creating DB schema ends'
 
 python generateBaseTables.py
 
-sed -i 's/$DB_NAME/'$DB_NAME'/' *.sql 
+sed -i 's/$DB_NAME/'$DB_NAME'/' *.sql
 for dataFile in course.sql professor.sql course_instance.sql section.sql \
     section_professor.sql student.sql schedule.sql major.sql section_time.sql \
     schedule_course_instance.sql major_requirement.sql; do

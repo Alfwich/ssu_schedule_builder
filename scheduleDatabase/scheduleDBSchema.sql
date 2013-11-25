@@ -45,12 +45,12 @@ CREATE TABLE section (
 );
 
 CREATE TABLE section_time (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     section_id          char(4)         NOT NULL,
     day                 varchar(3)      NOT NULL,
     start_time          char(4), 
     end_time            char(4),
     location            varchar(16),
-    PRIMARY KEY (section_id, day, start_time, location),
     FOREIGN KEY (section_id)
         REFERENCES section(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -62,9 +62,9 @@ CREATE TABLE professor (
 );
 
 CREATE TABLE section_professor (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     section_id          char(4)         NOT NULL,
     prof_id             varchar(9)      NOT NULL,
-    PRIMARY KEY (section_id, prof_id),
     FOREIGN KEY (section_id) REFERENCES section (id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (prof_id) REFERENCES professor (id) ON UPDATE CASCADE
 );
@@ -76,9 +76,9 @@ CREATE TABLE student (
 );
 
 CREATE TABLE student_course (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     student_id          varchar(9)      NOT NULL,
     course_id           integer         NOT NULL,
-    PRIMARY KEY (student_id, course_id),
     FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (course_id) REFERENCES course (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -90,9 +90,9 @@ CREATE TABLE schedule (
 );
 
 CREATE TABLE schedule_course_instance (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     schedule_id         integer         NOT NULL,
     course_instance_id  integer         NOT NULL,
-    PRIMARY KEY (schedule_id, course_instance_id),
     FOREIGN KEY (schedule_id) REFERENCES schedule (id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (course_instance_id) REFERENCES course_instance (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -105,6 +105,7 @@ CREATE TABLE major (
 );
 
 CREATE TABLE major_requirement (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     major_id            integer         NOT NULL,
     course_id           integer         NOT NULL,
     typ                 varchar(10)     NOT NULL,
@@ -113,9 +114,9 @@ CREATE TABLE major_requirement (
 );
 
 CREATE TABLE student_major (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     major_id            integer         NOT NULL,
     student_id          varchar(9)      NOT NULL,
-    PRIMARY KEY (major_id, student_id),
     FOREIGN KEY (major_id) REFERENCES major (id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -126,9 +127,9 @@ CREATE TABLE department (
 );
 
 CREATE TABLE major_department (
+    id                  integer         AUTO_INCREMENT PRIMARY KEY,
     major_id            integer         NOT NULL,
     department_id       integer         NOT NULL,
-    PRIMARY KEY (major_id, department_id),
     FOREIGN KEY (major_id) REFERENCES major (id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

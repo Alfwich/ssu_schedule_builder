@@ -37,7 +37,24 @@ def find_courses(request, query):
 
         out.append("<div %s><span>%s - %s</span><button onClick='add_course(%d)'>Add</button></div>" % (div_class, str(course), course.title, course.id))
 
-    dajax.assign('#course_list', 'innerHTML', ''.join(out))
+    dajax.assign('.course.list', 'innerHTML', ''.join(out))
+
+    return dajax.json()
+
+@dajaxice_register
+def populate_ge_result(request, code):
+    dajax = Dajax()
+
+    courses = Course.objects.filter(ge_code__iexact=code)
+
+    out = []
+
+    for course in courses:
+        out.append("<div><span>%s - %s</span><input type='checkbox' name='courses' value='%s'</div>" % ( str(course), course.title, course.id ))
+
+    dajax.assign('.ge_result.list', 'innerHTML', ''.join(out))
+
+    dajax.script('ge_callback();')
 
     return dajax.json()
 

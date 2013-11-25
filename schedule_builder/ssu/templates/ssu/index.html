@@ -6,13 +6,13 @@
         <script type="text/javascript" src="{{STATIC_URL}}dajax/jquery.dajax.core.js"></script>
         <script>
             $(function() {
-                $('#search > input').keyup(function(e) {
-                    if (e.keyCode == 13 && $('#course_list .selected button').length > 0) {
-                        $('#course_list .selected button').click();
+                $('.search.area > input').keyup(function(e) {
+                    if (e.keyCode == 13 && $('.course.list .selected button').length > 0) {
+                        $('.course.list .selected button').click();
                     }
 
                     else if (e.keyCode == 40) {
-                        selected = $('#course_list .selected');
+                        selected = $('.course.list .selected');
                         if (selected.next().length == 1) {
                             selected.removeClass('selected');
                             selected.next().addClass('selected');
@@ -20,7 +20,7 @@
                     }
 
                     else if (e.keyCode == 38) {
-                        selected = $('#course_list .selected');
+                        selected = $('.course.list .selected');
                         if (selected.prev().length == 1) {
                             selected.removeClass('selected');
                             selected.prev().addClass('selected');
@@ -28,53 +28,68 @@
                     }
 
                     else {
-                        Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() })
+                        Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() });
                     }
                 });
-                $('.search.option').click(function() {
-                    $('#level3').hide();
-                    $('#level2').show();
-                    $('.category.area').hide();
-                    $('.search.area').show();
-                    $('.search.area > input').focus();
+
+                $('.ge-final.option').hover(function() {
+                    Dajaxice.ssu.populate_ge_result(Dajax.process, { code: 'ge' + $(this).attr('id') });
                 });
-                $('.category.option').click(function() {
-                    $('#level3').hide();
-                    $('#level2').show();
-                    $('.search.area').hide();
-                    $('.category.area').show();
+
+                $('.option').hover(function() {
+                    level_object = $(this).parent();
+                    if ( level_object.attr('id').length == 0) level_object = level_object.parent();
+                    next_level = parseInt(level_object.attr('id').slice(-1)) + 1;
+                    hide_levels_above(next_level);
+                    $('#level' + next_level).show();
+                    $('#level' + next_level).offset( { top: $(this).offset().top } );
+                    $('#level' + next_level).children().hide();
+                    $('#level' + next_level + ' .' + $(this).attr('class').split(" ")[0]).show();
                 });
-                $('.major.option').click(function() {
-                    $('#level3').show();
-                    $('.ge.area').hide();
-                    $('.major.area').show();
-                });
-                $('.ge.option').click(function() {
-                    $('#level3').show();
-                    $('.major.area').hide();
-                    $('.ge.area').show();
-                });
-                $('#level2').hide();
-                $('#level3').hide();
+
+                hide_levels_above(1);
             });
+
+            var ge_selected = {}
+
+            function ge_change() {
+                if (this.checked) {
+                    ge_selected[this.value] = true;
+                }
+                else {
+                    delete ge_selected[this.value];
+                }
+            }
+
+            function hide_levels_above(level) {
+                while ( (level_to_hide = $('#level' + ++level)).length != 0 ) level_to_hide.hide();
+            }
 
             function add_course(id) {
                 $('.search.area > input').val('');
-                $('#course_list').html('');
+                $('.course.list').html('');
                 Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
                 $('.search.area > input').focus();
             }
+
+            function ge_callback() {
+                boxes = $('.ge_result.list input[type=checkbox]');
+                boxes.change(ge_change);
+                for (var i = 0; i < boxes.length; ++i) {
+                    if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
+                }
+                $('.ge_result.list input[type=checkbox]').change(ge_change);
+            }
         </script>
         <style type="text/css">
-            #course_list span { display: inline-block; width: 300px; }
-            #added_courses { width: 300px; }
-            .level { display: inline-block; vertical-align: top; margin-top: 5px; }
-            .area { margin-top: 5px; }
+            .list span { display: inline-block; width: 300px; font-size: 12px; }
+            #added_courses { width: 300px; font-size: 12px; }
+            .level { display: inline-block; vertical-align: top; margin: 0 10px; }
             .selected { background-color: yellow; }
             .option { background-color: #214583; display: block; height: 20px; cursor: pointer;
-                padding: 5px; color: #eee; margin: 5px; font-weight: bold; border-radius: 5px;
-                text-align: center; }
-            #level1 { width: 100px; }
+                padding: 5px; color: #eee; margin-bottom: 5px; font-weight: bold; border-radius: 5px;
+                text-align: center; font-size: 13px; }
+            #level1 { width: 100px; margin-top: 5px; }
         </style>
             
     </head>
@@ -89,7 +104,7 @@
             <div class="level" id="level2">
                 <div class="search area">
                     <input type="text" value="" autocomplete="off">
-                    <div id="course_list"></div>
+                    <div class="course list"></div>
                 </div>
                 <div class="category area">
                     <div class="major option">Major</div>
@@ -100,11 +115,49 @@
             <div class="level" id="level3">
                 <div class="major area">
                     <input type="text" value="" autocomplete="off">
-                    <div id="major_list"></div>
+                    <div class="major list"></div>
                 </div>
-                <div class="ge area"></div>
+                <div class="ge area">
+                    <div class="a option">A - Communication and Critical Thinking</div>
+                    <div class="b option">B - Natural Sciences and Mathematics</div>
+                    <div class="c option">C - Humanities</div>
+                    <div class="d option">D - Social Sciences</div>
+                    <div class="e option">E - The Integrated Person</div>
+                </div>
             </div>
-
+            
+            <div class="level" id="level4">
+                <div class="a area">
+                    <div id="a2" class="ge-final option">A2 - Fundamentals of Communication</div>
+                    <div id="a3" class="ge-final option">A3 - Critical Thinking</div>
+                </div>
+                <div class="b area">
+                    <div id="b1" class="ge-final option">B1 - Physical Sciences</div>
+                    <div id="b2" class="ge-final option">B2 - Biological Sciences</div>
+                    <div id="b3" class="ge-final option">B3 - Specific Emphasis</div>
+                    <div id="b4" class="ge-final option">B4 - Mathematical Concepts</div>
+                </div>
+                <div class="c area">
+                    <div id="c1" class="ge-final option">C1 - Fine Arts</div>
+                    <div id="c2" class="ge-final option">C2 - Literature, Philosophy, Values</div>
+                    <div id="c3" class="ge-final option">C3 - Comparative Perspectives / Foreign Language</div>
+                </div>
+                <div class="d area">
+                    <div id="d1" class="ge-final option">D1 - Individual and Society</div>
+                    <div id="d2" class="ge-final option">D2 - World History and Civilization</div>
+                    <div id="d3" class="ge-final option">D3 - United States History</div>
+                    <div id="d4" class="ge-final option">D4 - US Constitution, State and Local Gov</div>
+                    <div id="d5" class="ge-final option">D5 - Contemporary International Perspectives</div>
+                </div>
+                <div class="e area">
+                    <div id="e" class="ge-final option">E1 - The Integrated Person</div>
+                </div>
+            </div>
+            <div class="level" id="level5">
+                <div class="ge-final area">
+                    <div data="" class="ge_result list"></div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

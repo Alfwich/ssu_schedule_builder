@@ -23,6 +23,13 @@ class CourseInstance(models.Model):
     id = models.IntegerField(primary_key=True)
     course = models.ForeignKey(Course)
 
+    def section_times(self):
+        times = []
+        for section in self.section_set.all():
+            for time in section.sectiontime_set.all():
+                times.append( dict(start_time=time.start_time, end_time=time.end_time, day=time.day) )
+        return times
+
     def __unicode__(self):
         return str(self.course)
 
@@ -51,6 +58,7 @@ class MajorDepartment(models.Model):
     class Meta:
         db_table = 'major_department'
 
+    id = models.IntegerField(primary_key=True)
     major = models.ForeignKey(Major)
     department = models.ForeignKey(Department)
 
@@ -58,6 +66,7 @@ class MajorRequirement(models.Model):
     class Meta:
         db_table = 'major_requirement'
 
+    id = models.IntegerField(primary_key=True)
     major = models.ForeignKey(Major)
     course = models.ForeignKey(Course)
     typ = models.CharField(max_length=10L)
@@ -76,6 +85,7 @@ class Schedule(models.Model):
         db_table = 'schedule'
 
 class ScheduleCourseInstance(models.Model):
+    id = models.IntegerField(primary_key=True)
     schedule = models.ForeignKey(Schedule)
     course_instance = models.ForeignKey(CourseInstance)
     class Meta:
@@ -90,12 +100,14 @@ class Section(models.Model):
         db_table = 'section'
 
 class SectionProfessor(models.Model):
+    id = models.IntegerField(primary_key=True)
     section = models.ForeignKey(Section)
     prof = models.ForeignKey(Professor)
     class Meta:
         db_table = 'section_professor'
 
 class SectionTime(models.Model):
+    id = models.IntegerField(primary_key=True)
     section = models.ForeignKey(Section)
     day = models.CharField(max_length=3L)
     start_time = models.CharField(max_length=4L)
@@ -112,12 +124,14 @@ class Student(models.Model):
         db_table = 'student'
 
 class StudentCourse(models.Model):
+    id = models.IntegerField(primary_key=True)
     student = models.ForeignKey(Student)
     course = models.ForeignKey(Course)
     class Meta:
         db_table = 'student_course'
 
 class StudentMajor(models.Model):
+    id = models.IntegerField(primary_key=True)
     major = models.ForeignKey(Major)
     student = models.ForeignKey(Student)
     class Meta:
