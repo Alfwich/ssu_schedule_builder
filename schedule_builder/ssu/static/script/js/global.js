@@ -25,12 +25,12 @@ function Init()
 		windows.push( this );
 		$(this).attr("id", i++ );
 	});	
-		
+	
+	RenderSchedule( 0 );	
 	SetupWindows();	
-	LoadSchedule( 0 );
 	
 	// Get all of the course data from the server and populate the auto complete data field
-	Dajaxice.ssu.get_course_data( SetupAutoCompleteTags );
+	// Dajaxice.ssu.get_course_data( SetupAutoCompleteTags );
 	
 }
 
@@ -65,7 +65,6 @@ function BindAutoComplete( obj )
 
 function ResizeElements()
 {
-	LoadSchedule( currentSchedule );
 	SetupWindows();
 }
 
@@ -428,110 +427,7 @@ function ClassBlockCallback( value )
 /////////////SCHEDULES/////////////
 ///////////////////////////////////
 var currentSchedule = 0;
-var abbrToDay =
-{
-	"M":"monday",
-	"T":"tuesday",
-	"W":"wednesday",
-	"R":"thursday",
-	"F":"friday",
-	"S":"saturday",
-	"U":"sunday",
-}
-var schedules =
-[
-	[
-		{
-			"name":"CS 355",
-			"blocks":
-			[
-				{
-					"day":"M",
-					"start":"1200",
-					"end":"1400",
-				},
-				{
-					"day":"W",
-					"start":"1200",
-					"end":"1400",
-				},			
-			],
-		},
-		{
-			"name":"CS 242",
-			"blocks":
-			[
-				{
-					"day":"T",
-					"start":"1000",
-					"end":"1200",
-				},
-				{
-					"day":"R",
-					"start":"1100",
-					"end":"1200",
-				},			
-			],
-		},
-		{
-			"name":"WGS 280",
-			"blocks":
-			[
-				{
-					"day":"F",
-					"start":"1500",
-					"end":"1700",
-				},
-			],
-		},			
-	],
-	[
-		{
-			"name":"CS 375",
-			"blocks":
-			[
-				{
-					"day":"T",
-					"start":"1500",
-					"end":"1900",
-				},
-				{
-					"day":"R",
-					"start":"1500",
-					"end":"1900",
-				},			
-			],
-		},	
-	],
-	[
-		{
-			"name":"ARTH 210",
-			"blocks":
-			[
-				{
-					"day":"M",
-					"start":"900",
-					"end":"1100",
-				},
-				{
-					"day":"T",
-					"start":"900",
-					"end":"1100",
-				},
-				{
-					"day":"W",
-					"start":"900",
-					"end":"1100",
-				},
-				{
-					"day":"R",
-					"start":"900",
-					"end":"1100",
-				},				
-			],
-		},	
-	],	
-];
+var maxSchedules = 0;
 
 function ClearSchedule()
 {
@@ -590,12 +486,12 @@ function LoadSchedule( schedule_id )
 function NextSchedule()
 {
 	currentSchedule++;
-	if( currentSchedule >= schedules.length )
+	if( currentSchedule >= maxSchedules )
 	{
 		currentSchedule = 0;
 	}
 	
-	LoadSchedule( currentSchedule );
+	RenderSchedule( currentSchedule );
 }
 
 function PrevSchedule()
@@ -603,10 +499,10 @@ function PrevSchedule()
 	currentSchedule--;
 	if( currentSchedule < 0 )
 	{
-		currentSchedule = schedules.length-1;
+		currentSchedule = maxSchedules-1;
 	}
 	
-	LoadSchedule( currentSchedule );
+	RenderSchedule( currentSchedule );
 }
 
 function AddDayBlock( title, day, start, end )
@@ -635,19 +531,33 @@ function AddDayBlock( title, day, start, end )
 	$(entries).append( divWrapper );
 }
 
+function RenderSchedule( schedule )
+{
+	Dajaxice.ssu.render_schedule( Dajax.process, { width:($(".calendar").width() * 0.14)-1, height:( $(".calendar").height() - 20 ) / 16, schedule_id:schedule } );
+}
 
+function SetMaxSchedules( max )
+{
+	maxSchedules = max;
+}
 
+function SetScheduleEvents( data )
+{
+	$(".class_block").click(function(e){
+		ContextInit( this, context.classBlockMenu, ClassBlockCallback );
+	});
+}
 
+function AddCourse( course_id )
+{
+	Dajaxice.ssu.add_course( Dajax.process, course_id );
+}
 
-
-
-
-
-
-
-
-
-
+function CalcSchedules( course_id )
+{
+	Dajaxice.ssu.make_schedules( Dajax.process );
+	RenderSchedule(0);
+}
 
 
 
