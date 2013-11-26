@@ -23,6 +23,7 @@ Arthur Wuterich
 #application *
 {
     font-family: arial;
+    
 }
 
 .window
@@ -153,6 +154,7 @@ Arthur Wuterich
     -webkit-box-shadow: 5px 5px #888;
     box-shadow: 5px 5px #888;
     z-index: 1;
+    font-size:80%;
 
 }
 
@@ -233,6 +235,18 @@ Arthur Wuterich
 
 .list span { display: inline-block; width: 300px; font-size: 12px; }
 #added_courses { width: 300px; font-size: 12px; }
+#added_courses p 
+{ 
+    cursor: pointer;
+    height: 20px;
+    background-color:transparent;
+    transition:background-color .2s;
+    -moz-transition: background-color .2s;    
+}
+#added_courses p:hover
+{ 
+    background-color:#EEE;
+}
 .level { display: inline-block; vertical-align: top; margin: 0 10px; }
 .selected { background-color: yellow; }
 .option {

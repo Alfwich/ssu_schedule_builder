@@ -26,7 +26,10 @@ function Init()
         $(this).attr("id", i++ );
     }); 
     
-    SetupWindows(); 
+    SetupWindows();
+    
+    // Get the courses already added for this session
+    Dajaxice.ssu.get_session_courses( ProcessSessionCourses );
         
 }
 /*
@@ -180,7 +183,7 @@ function WindowOpenComplete()
 {
     if( current_window == 1 )
     {
-        if( maxSchedules != 0 && scheduleLimit.min == 0 )
+        if( schedule.maxSchedules != 0 && schedule.scheduleLimit.min == 0 )
         {
             LoadSchedule( 0 );
         }
@@ -211,6 +214,11 @@ var context =
                 "All After this time":"Remove",
             },            
 	},
+    courseItem:
+    {
+        "Remove":1,
+    },
+    target:null,
 };
 function SearchSelection( node, callback )
 {
@@ -274,6 +282,9 @@ function ContextInit( target, menu, callback )
             CloseAllContextMenus();
         }
     });
+    
+    // Save the calling object
+    context.target = target
 
     // Show the new menu
     ContextMenu( target, menu, callback );
@@ -405,11 +416,34 @@ function ClassBlockCallback( value )
 ///////////////////////////////////
 /////////////SCHEDULES/////////////
 ///////////////////////////////////
-var schedules = [];
-var currentSchedule = 0;
-var scheduleLimit = { min:0, max:0 };
-var scheduleStep = 60;
-var maxSchedules = 0;
+var schedule = {
+
+    schedules:[],
+    currentSchedule:0,
+    scheduleLimit:{ min:0, max:0 },
+    scheduleStep:30,
+    maxSchedules:0,
+}
+function ProcessSessionCourses(data)
+{
+    // If there are courses returned get schedule data
+    if( data.length > 0 )
+    {
+        CalcSchedules();
+    }
+
+    // Add the courses to the list
+    for( course in data )
+    {
+        var p = $("<p>",{
+            text:data[course].out,
+            id:data[course].id,
+        });
+        $("#added_courses").append( p );
+    }
+    
+    BindCourseClick();
+}
 
 function ClearSchedule()
 {
@@ -452,12 +486,19 @@ function LoadSchedule( schedule_id )
     ClearSchedule();
     
     // Set labels to the current schedules
-    $(".schedule_label").text( "Schedules( "+(schedule_id+scheduleLimit.min+1)+"/"+(maxSchedules-1)+")");
+    if( schedule.schedules.length > 0 )
+    {
+        $(".schedule_label").text( "Schedules( "+(schedule_id+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules-1)+")");
+    }
+    else
+    {
+        $(".schedule_label").text( "Schedules" );    
+    }
 
     // Render the time blocks
-    for( var c in schedules[schedule_id] )
+    for( var c in schedule.schedules[schedule_id] )
     {
-        var course = schedules[schedule_id][c];
+        var course = schedule.schedules[schedule_id][c];
         for( var b in course.times )
         {
             var block = course.times[b];
@@ -469,61 +510,49 @@ function LoadSchedule( schedule_id )
     }
     
     // Check to see if the current schedule is adjacent to an edge entry
-    if( ( schedule_id <= (scheduleStep/2) && scheduleLimit.min > 0 ) || ( scheduleLimit.max < maxSchedules && schedule_id >= ( (schedules.length-1) - (scheduleStep/2) ) ) )
+    if( ( schedule_id <= (schedule.scheduleStep/2) && schedule.scheduleLimit.min > 0 ) || ( schedule.scheduleLimit.max < schedule.maxSchedules && schedule_id >= ( (schedule.schedules.length-1) - (schedule.scheduleStep/2) ) ) )
     {
-        var oldPos = currentSchedule+scheduleLimit.min;
+        var oldPos = schedule.currentSchedule+schedule.scheduleLimit.min;
     
-        /* Decrease the loaded schedules
-        if( schedule_id <= 1 )
-        {
-            scheduleLimit.min -= scheduleStep;
-            scheduleLimit.max -= scheduleStep;
-        }
-        else
-        {
-            scheduleLimit.min += scheduleStep;
-            scheduleLimit.max += scheduleStep;        
-        }
-        */
-        scheduleLimit.min = oldPos-scheduleStep;
-        scheduleLimit.max = oldPos+scheduleStep;
+        schedule.scheduleLimit.min = oldPos-schedule.scheduleStep;
+        schedule.scheduleLimit.max = oldPos+schedule.scheduleStep;
         // Check bounds for the limits
-        if( scheduleLimit.min < 0 )
+        if( schedule.scheduleLimit.min < 0 )
         {
-            scheduleLimit.min = 0;
+            schedule.scheduleLimit.min = 0;
         }
         
-        if( scheduleLimit.max > maxSchedules )
+        if( schedule.scheduleLimit.max > schedule.maxSchedules )
         {
-            scheduleLimit.max = maxSchedules;
+            schedule.scheduleLimit.max = schedule.maxSchedules;
         }        
         
-        currentSchedule = oldPos - scheduleLimit.min;
+        schedule.currentSchedule = oldPos - schedule.scheduleLimit.min;
         
-        GetScheduleData( scheduleLimit.min, scheduleLimit.max );        
+        GetScheduleData( schedule.scheduleLimit.min, schedule.scheduleLimit.max );        
     }
 }
 
 function NextSchedule()
 {
-    currentSchedule++;
-    if( scheduleLimit.min+currentSchedule >= maxSchedules-1 )
+    schedule.currentSchedule++;
+    if( schedule.scheduleLimit.min+schedule.currentSchedule >= schedule.maxSchedules-1 )
     {
-        currentSchedule--
+        schedule.currentSchedule--
     }
         
-    LoadSchedule( currentSchedule ); 
+    LoadSchedule( schedule.currentSchedule ); 
 }
 
 function PrevSchedule()
 {
-    currentSchedule--;
-    if( scheduleLimit.min+currentSchedule < 0 )
+    schedule.currentSchedule--;
+    if( schedule.scheduleLimit.min+schedule.currentSchedule < 0 )
     {
-        currentSchedule = 0;
+        schedule.currentSchedule = 0;
     }   
        
-    LoadSchedule( currentSchedule );   
+    LoadSchedule( schedule.currentSchedule );   
 }
 
 function AddDayBlock( title, day, start, end )
@@ -555,7 +584,7 @@ function AddDayBlock( title, day, start, end )
     }); 
     
     var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
-    var blockWidth = $(".calendar").width() * 0.14;
+    var blockWidth = ($(".calendar").width() * 0.13)-2;
     
     $(block).css( { height: (lengthValue*heightMultiple)+"px", top: startValue*heightMultiple, width:(blockWidth)+"px" } );
     $(block).text( title );
@@ -598,10 +627,10 @@ function RemoveCourse( course_id )
 // Callback for django to set the total number of schedules
 function SetMaxNumberOfSchedules( data )
 {
-    maxSchedules = data;
-    scheduleLimit.min = 0;
-    scheduleLimit.max = scheduleStep*2;
-    GetScheduleData( scheduleLimit.min, scheduleLimit.max );
+    schedule.maxSchedules = data;
+    schedule.scheduleLimit.min = 0;
+    schedule.scheduleLimit.max = schedule.scheduleStep*2;
+    GetScheduleData( schedule.scheduleLimit.min, schedule.scheduleLimit.max );
 }
 
 function GetScheduleData( start, end )
@@ -611,12 +640,19 @@ function GetScheduleData( start, end )
 
 function ScheduleData( data )
 {
-    $(".schedule_label").text( "Schedules( "+(currentSchedule+scheduleLimit.min+1)+"/"+(maxSchedules-1)+")");
     if( data instanceof Array )
     {
-        schedules = data;
-        console.log( "done" );
+        if( data.length > 0 )
+        {
+            $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules-1)+")");    
+        }
+        else
+        {
+            $(".schedule_label").text( "Schedules" );            
+        }
+        schedule.schedules = data;
     }
+    console.log( "done" );    
 }
 
 function ToConsole( data )
@@ -695,7 +731,6 @@ function add_course(id) {
     $('.course.list').html('');
     Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
     $('.search.area > input').focus();
-    CalcSchedules();
 }
 
 function ge_callback() {
@@ -707,6 +742,38 @@ function ge_callback() {
     $('.ge_result.list input[type=checkbox]').change(ge_change);
 }
 
+function courseCallback(value)
+{
+    var id = $(context.target).attr("id");
+    Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
+    $(context.target).remove();
+}
+
+function BindCourseClick()
+{
+    // Remove old click listeners to be safe
+    $("#added_courses").children("p").unbind("click");
+    
+    // Add new listeners
+    $("#added_courses").children("p").click(function(e){
+        ContextInit( this, context.courseItem, courseCallback );
+    });
+}
+
+function AddCourseCallback()
+{
+    // Get the new schedules
+    CalcSchedules();
+    
+    // Add click listeners
+    BindCourseClick();
+}
+
+function DeleteCallback()
+{
+    // Get the new schedules
+    CalcSchedules();
+}
 
 
 

@@ -11,7 +11,10 @@ import random
 
 @dajaxice_register
 def get_session_courses(request):
-    return ""
+    if not 'courses' in request.session:
+            request.session['courses'] = []
+            
+    return json.dumps( request.session['courses'] )
 
 @dajaxice_register
 def find_courses(request, query):
@@ -20,8 +23,7 @@ def find_courses(request, query):
     courses_by_subject = Course.objects.filter(subject_no__istartswith=query.replace(" ", ""))
     courses_by_title = Course.objects.filter( Q(catalog_no__startswith=query) | Q(title__icontains=query) )
     result_courses = list(chain(courses_by_subject, courses_by_title))[:10]
-
-
+    
     out = []
 
     for index, course in enumerate(result_courses):
@@ -57,15 +59,37 @@ def populate_ge_result(request, code):
     return dajax.json()
 
 @dajaxice_register
-def remove_course(request, course):
+def remove_course(request, id):
     dajax = Dajax()
     
     if not 'courses' in request.session:
         request.session['courses'] = []
         return dajax.json()
+        
+    if not 'instances' in request.session:
+        request.session['instances'] = []        
     
     try:
-        del request.session['courses'][course]
+        deleted = False
+        for i, c in enumerate(request.session['courses']):
+            if( int(c['id']) == int(id) ):
+                del request.session['courses'][i]
+                deleted = True
+                
+        if deleted == True:
+            request.session['instances'] = []   
+            
+            # Recalc course instances *** Better way to do this? ***
+            for c in request.session['courses']:
+                result = []
+                courseInstances = CourseInstance.objects.filter(course_id=c)
+                for instance in courseInstances:
+                    result.append( instance.id )
+                    
+                request.session['instances'].append( result )            
+                
+            dajax.script('DeleteCallback();') 
+           
     except IndexError:
         print 'sorry, no ' + str( course )   
         
@@ -77,20 +101,28 @@ def add_course(request, course_id):
     dajax = Dajax()
     course = Course.objects.get(id=course_id)
 
-    out = "<p>%s - % s</p>" % ( str(course), course.title )
+    out = "%s - % s" % ( str(course), course.title )
+    display = "<p id=\"%s\">%s</p>" % ( str(course.id), out )
 
-    dajax.append('#added_courses', 'innerHTML', out)
+    dajax.append('#added_courses', 'innerHTML', display)
 	
+    if not 'instances' in request.session:
+        request.session['instances'] = []
+		
     if not 'courses' in request.session:
         request.session['courses'] = []
-		
+
+    request.session['courses'].append( { "id":course.id, "out":out } )
+    
     courseInstances = CourseInstance.objects.filter(course_id=course_id)
     
     result = []
     for instance in courseInstances:
         result.append( instance.id )
 		
-    request.session['courses'].append( result )
+    request.session['instances'].append( result )
+    
+    dajax.script("AddCourseCallback();");
 		
     request.session.modified = True
     return dajax.json()
@@ -98,13 +130,13 @@ def add_course(request, course_id):
 @dajaxice_register	
 def make_schedules( request ):
 
-    if not 'courses' in request.session:
-        request.session['courses'] = []
+    if not 'instances' in request.session:
+        request.session['instances'] = []
 
     if not 'schedules' in request.session:
         request.session['schedules'] = []	
 
-    request.session['schedules'] = list( product( *request.session['courses'] ) )
+    request.session['schedules'] = list( product( *request.session['instances'] ) )
     request.session.modified = True
   
     return len( request.session['schedules'] )
@@ -153,8 +185,8 @@ def get_schedules( request, start, end ):
 @dajaxice_register
 def render_schedule( request, width, height, schedule_id ):
 
-    if not 'courses' in request.session:
-        request.session['courses'] = []
+    if not 'instances' in request.session:
+        request.session['instances'] = []
 
     if not 'schedules' in request.session:
         request.session['schedules'] = []
