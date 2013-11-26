@@ -1,241 +1,253 @@
-/* 
+/*
 SSU Schedule Maker Framework
 11/20/2013
-Arthur Wuterich 
+Arthur Wuterich
 */
 
 /* Application wrapper */
 #application
 {
-	position:absolute;
-	top: 0px;
-	left: 0px;
-	right: 0px;
-	bottom: 0px;
-	margin: auto;
-	overflow:hidden;
-	background-color:#D8D8D8;
-	width: 100%;
-	height: 100%;
+    position:absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    margin: auto;
+    overflow:hidden;
+    background-color:#D8D8D8;
+    width: 100%;
+    height: 100%;
 }
 
 /* Global Application */
 #application *
 {
-	font-family: arial;
+    font-family: arial;
 }
 
 .window
 {
-	position: absolute;
-	left: 2500px;
-	height: 100%;
-	background-color: #FFF;
+    position: absolute;
+    left: 2500px;
+    height: 100%;
+    background-color: #FFF;
 }
 
 .window .bar
 {
-	height: 100%;
-	float: left;
-	
-	background-color: #005CA8;
-	color: #FFFFFF;
-	font-weight: bold;
-	width: 50px;
-	overflow: hidden;
-	white-space: nowrap;
-	border-left: 2px solid #008CFF;
-	cursor: pointer;
+    height: 100%;
+    float: left;
 
-	transition:background-color .2s;
-	-webkit-transition:background-color .2s; /* Safari */	
-	
+    background-color: #005CA8;
+    color: #FFFFFF;
+    font-weight: bold;
+    width: 50px;
+    overflow: hidden;
+    white-space: nowrap;
+    border-left: 2px solid #008CFF;
+    cursor: pointer;
+
+    transition:background-color .2s;
+    -webkit-transition:background-color .2s; /* Safari */
+
 }
 .window .bar:hover
 {
-	background-color: #008CFF; 
+    background-color: #008CFF;
 }
 .window .label_wrapper
 {
-	position: relative;
-	top: 150px;
+    position: relative;
+    top: 150px;
 }
 
 .window .content
 {
-	width: 100%;
-	height: 100%;
-	padding: 50px;
-	padding-left: 100px;
+    width: 100%;
+    height: 100%;
+    padding: 50px;
+    padding-left: 100px;
 }
 
 /* Rotation css for label titles */
-.rotate 
+.rotate
 {
-	-webkit-transform: rotate(-90deg);
-	-moz-transform: rotate(-90deg);
-	-ms-transform: rotate(-90deg);
-	-o-transform: rotate(-90deg);
-	transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    transform: rotate(-90deg);
 
-	/* also accepts left, right, top, bottom coordinates; not required, but a good idea for styling */
-	-webkit-transform-origin: 50% 50%;
-	-moz-transform-origin: 50% 50%;
-	-ms-transform-origin: 50% 50%;
-	-o-transform-origin: 50% 50%;
-	transform-origin: 50% 50%;
+    /* also accepts left, right, top, bottom coordinates; not required, but a good idea for styling */
+    -webkit-transform-origin: 50% 50%;
+    -moz-transform-origin: 50% 50%;
+    -ms-transform-origin: 50% 50%;
+    -o-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
 
-	/* Should be unset in IE9+ I think. */
-	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+    /* Should be unset in IE9+ I think. */
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
 }
 
 .no_select
 {
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #side_window
 {
-	width: 300px;
-	height: 100%;
-	float:left;
-	background-color: #FFF;
+    width: 300px;
+    height: 100%;
+    float:left;
+    background-color: #FFF;
 }
 
 #side_window .logo
 {
-	width: 100%;
-	height: 130px;
-	
-	display: block;
-	background-size: 100% 100%;
-	background-image: url( "/static/image/sonoma_logo.jpg" );
+    width: 100%;
+    height: 130px;
+
+    display: block;
+    background-size: 100% 100%;
+    background-image: url( "/static/image/sonoma_logo.jpg" );
 }
 
 #side_window ul, .context_window ul
 {
-	list-style-type: none;
-	padding: 0px;
-	margin: 0px;
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
 }
 
 #side_window li, .context_window li
 {
-	padding: 25px 0px 25px 0px;
-	width: 100%;
-	text-align: center;
-	border-bottom: 2px solid #DDD;
-	
-	transition:background-color .2s;
-	-webkit-transition:background-color .2s; /* Safari */	
-	cursor: pointer;	
+    padding: 25px 0px 25px 0px;
+    width: 100%;
+    text-align: center;
+    border-bottom: 2px solid #DDD;
+
+    transition:background-color .2s;
+    -webkit-transition:background-color .2s; /* Safari */
+    cursor: pointer;
 }
 
 #side_window li:hover, .context_window li:hover
 {
-	background-color: #DDD;
+    background-color: #DDD;
 }
 
 .context_window
 {
-	position: absolute;
-	width: 170px;
-	background-color: #FFF;
-	border: 1px solid #DDD;
-	border-radius: 3px;
-	-moz-box-shadow: 5px 5px #888;
-	-webkit-box-shadow: 5px 5px #888;
-	box-shadow: 5px 5px #888;
-	z-index: 1;
-	
+    position: absolute;
+    width: 170px;
+    background-color: #FFF;
+    border: 1px solid #DDD;
+    border-radius: 3px;
+    -moz-box-shadow: 5px 5px #888;
+    -webkit-box-shadow: 5px 5px #888;
+    box-shadow: 5px 5px #888;
+    z-index: 1;
+
 }
 
 .context_search
 {
-	width: 80%;
-	margin: 0px auto 0px auto;
+    width: 80%;
+    margin: 0px auto 0px auto;
 }
 
 .calendar
 {
-	height: 50%;
-	width: 100%;
+    height: 50%;
+    width: 100%;
 }
 
 .week_day
 {
-	width: 14%;
-	height: 100%;
-	float:left;
-	border-right: 1px solid #EEE;	
+    width: 14%;
+    height: 100%;
+    float:left;
+    border-right: 1px solid #EEE;
 }
 .week_day .header
 {
-	color: #333;
-	font-weight: bold;
-	width:100%;
-	height: 20px;
-	text-align: center;
-	background-color: #62A4DB;
-	border-radius: 3px;
-	border-bottom: 1px solid #A0C0DB;
+    color: #333;
+    font-weight: bold;
+    width:100%;
+    height: 20px;
+    text-align: center;
+    background-color: #62A4DB;
+    border-radius: 3px;
+    border-bottom: 1px solid #A0C0DB;
 }
 .calendar .monday, .calendar .wednesday, .calendar .friday
 {
-	background-color: #ABC5DB;
+    background-color: #ABC5DB;
 }
 .calendar .tuesday, .calendar .thursday
 {
-	background-color: #C5D1DB;
+    background-color: #C5D1DB;
 }
 .calendar .saturday, .calendar .sunday
 {
-	background-color: #D4D4D4;
+    background-color: #D4D4D4;
 }
 .calendar .sunday
 {
-	border-top-left-radius: 3px;
-	border-bottom-left-radius: 3px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
 }
 .calendar .saturday
 {
-	border-top-right-radius: 3px;
-	border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
 }
 .class_block_wrapper
 {
-	position: relative;
+    position: relative;
 }
 .class_block
 {
-	position: absolute;	
-	background-color: #d0efd0;
-	border: 1px solid #97da97;	
-	transition:background-color .2s;
+    position: absolute;
+    background-color: #d0efd0;
+    border: 1px solid #97da97;
+    transition:background-color .2s;
     -moz-transition: background-color .2s;
 }
 .class_block:hover
 {
-	background-color: #A9EFA9;
+    background-color: #A9EFA9;
 }
 .schedule_inputs
 {
-	margin-top: 10px;
+    margin-top: 10px;
 }
 
 .list span { display: inline-block; width: 300px; font-size: 12px; }
 #added_courses { width: 300px; font-size: 12px; }
 .level { display: inline-block; vertical-align: top; margin: 0 10px; }
 .selected { background-color: yellow; }
-.option { background-color: #214583; display: block; height: 20px; cursor: pointer;
-	padding: 5px; color: #eee; margin-bottom: 5px; font-weight: bold; border-radius: 5px;
-	text-align: center; font-size: 13px; }
-#level1 { width: 100px; margin-top: 5px; }
+.option {
+    background-color: #214583;
+    width: 120px;
+    display: block;
+    cursor: pointer;
+    padding: 5px;
+    color: #eee;
+    margin-bottom: 5px;
+    font-weight: bold;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 13px;
+}
+#level1 {
+    margin-top: 5px;
+}
 
 
 
