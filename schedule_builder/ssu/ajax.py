@@ -124,6 +124,9 @@ def get_schedules( request, start, end ):
         
     if( start < 0 ):
         start = 0
+        
+    if( end >= len(request.session['schedules']) ):
+        end = len(request.session['schedules'])-1
     
 	# If there are no schedules return an empty array
     if( len(request.session['schedules']) <= 0 ):

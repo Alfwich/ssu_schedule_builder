@@ -179,7 +179,10 @@ function WindowOpenComplete()
 {
     if( current_window == 1 )
     {
-        LoadSchedule(0);
+        if( maxSchedules != 0 && scheduleLimit.min == 0 )
+        {
+            LoadSchedule( 0 );
+        }
     }
 }
 
@@ -372,7 +375,8 @@ function ContextMenu( target, menu, callback )
         });
         
         context_menu.append( menu_selection );
-    }   
+    }
+    
     // Position at the mouse pointer if the first level
     if( context.depth == 0 )
     {
@@ -403,7 +407,7 @@ function ClassBlockCallback( value )
 var schedules = [];
 var currentSchedule = 0;
 var scheduleLimit = { min:0, max:0 };
-var scheduleStep = 0;
+var scheduleStep = 60;
 var maxSchedules = 0;
 
 function ClearSchedule()
@@ -447,8 +451,9 @@ function LoadSchedule( schedule_id )
     ClearSchedule();
     
     // Set labels to the current schedules
-    $(".schedule_label").text( "Schedules( "+(schedule_id+1+scheduleLimit.min)+"/"+(schedules.length)+")");
+    $(".schedule_label").text( "Schedules( "+(schedule_id+scheduleLimit.min+1)+"/"+(maxSchedules-1)+")");
 
+    // Render the time blocks
     for( var c in schedules[schedule_id] )
     {
         var course = schedules[schedule_id][c];
@@ -461,37 +466,49 @@ function LoadSchedule( schedule_id )
             }
         }
     }
-}
-
-function ResetScheduleLimit( direction )
-{
-    scheduleLimit.min += ( scheduleStep * direction );
-    scheduleLimit.max += ( scheduleStep * direction );
     
-    if( scheduleLimit.min < 0 )
+    // Check to see if the current schedule is adjacent to an edge entry
+    if( ( schedule_id <= (scheduleStep/2) && scheduleLimit.min > 0 ) || ( scheduleLimit.max < maxSchedules && schedule_id >= ( (schedules.length-1) - (scheduleStep/2) ) ) )
     {
-        scheduleLimit.min = 0;
-    }
+        var oldPos = currentSchedule+scheduleLimit.min;
     
-    if( scheduleLimit.max > maxSchedules-1 )
-    {
-        scheduleLimit.max = maxSchedules-1;
+        /* Decrease the loaded schedules
+        if( schedule_id <= 1 )
+        {
+            scheduleLimit.min -= scheduleStep;
+            scheduleLimit.max -= scheduleStep;
+        }
+        else
+        {
+            scheduleLimit.min += scheduleStep;
+            scheduleLimit.max += scheduleStep;        
+        }
+        */
+        scheduleLimit.min = oldPos-scheduleStep;
+        scheduleLimit.max = oldPos+scheduleStep;
+        // Check bounds for the limits
+        if( scheduleLimit.min < 0 )
+        {
+            scheduleLimit.min = 0;
+        }
+        
+        if( scheduleLimit.max > maxSchedules )
+        {
+            scheduleLimit.max = maxSchedules;
+        }        
+        
+        currentSchedule = oldPos - scheduleLimit.min;
+        
+        GetScheduleData( scheduleLimit.min, scheduleLimit.max );        
     }
-    
-    currentSchedule = scheduleStep;
-    GetScheduleData( scheduleLimit.min, scheduleLimit.max );
 }
 
 function NextSchedule()
 {
     currentSchedule++;
-    if( currentSchedule > maxSchedules-1 )
+    if( scheduleLimit.min+currentSchedule >= maxSchedules-1 )
     {
-        currentSchedule = maxSchedules-1;
-    }
-    if( (currentSchedule+scheduleLimit.min) == scheduleLimit.max-1 )
-    {
-        //ResetScheduleLimit( 1 );
+        currentSchedule--
     }
         
     LoadSchedule( currentSchedule ); 
@@ -500,16 +517,11 @@ function NextSchedule()
 function PrevSchedule()
 {
     currentSchedule--;
-    if( currentSchedule < 0 )
+    if( scheduleLimit.min+currentSchedule < 0 )
     {
         currentSchedule = 0;
     }   
-    
-    if( (currentSchedule+scheduleLimit.min) == scheduleLimit.min+1 && scheduleLimit.min != 0 )
-    {
-        //ResetScheduleLimit( -1 );
-    }
-    
+       
     LoadSchedule( currentSchedule );   
 }
 
@@ -587,25 +599,22 @@ function SetMaxNumberOfSchedules( data )
 {
     maxSchedules = data;
     scheduleLimit.min = 0;
-    scheduleLimit.max = 0;
-    GetScheduleData( 0, 0 );
+    scheduleLimit.max = scheduleStep*2;
+    GetScheduleData( scheduleLimit.min, scheduleLimit.max );
 }
 
 function GetScheduleData( start, end )
 {
-    currentSchedule = 0;
     Dajaxice.ssu.get_schedules( ScheduleData, { start:start, end:end } );
 }
 
 function ScheduleData( data )
 {
-    currentSchedule = 0;
-    $(".schedule_label").text( "Schedules( "+(currentSchedule+1+scheduleLimit.min)+"/"+(schedules.length)+")");
+    $(".schedule_label").text( "Schedules( "+(currentSchedule+scheduleLimit.min+1)+"/"+(maxSchedules-1)+")");
     if( data instanceof Array )
     {
         schedules = data;
         console.log( "done" );
-        LoadSchedule(0);
     }
 }
 
