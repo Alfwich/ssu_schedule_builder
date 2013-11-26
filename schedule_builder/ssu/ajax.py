@@ -70,25 +70,21 @@ def remove_course(request, id):
         request.session['instances'] = []        
     
     try:
-        deleted = False
-        for i, c in enumerate(request.session['courses']):
-            if( int(c['id']) == int(id) ):
-                del request.session['courses'][i]
-                deleted = True
+        # Remove all courses with the id
+        request.session['courses'] = [x for x in request.session['courses'] if not int(x['id']) == int(id)]
                 
-        if deleted == True:
-            request.session['instances'] = []   
+        request.session['instances'] = []   
+        
+        # Recalc course instances *** Better way to do this? ***
+        for c in request.session['courses']:
+            result = []
+            courseInstances = CourseInstance.objects.filter(course_id=c['id'])
+            for instance in courseInstances:
+                result.append( instance.id )
+                
+            request.session['instances'].append( result )            
             
-            # Recalc course instances *** Better way to do this? ***
-            for c in request.session['courses']:
-                result = []
-                courseInstances = CourseInstance.objects.filter(course_id=c)
-                for instance in courseInstances:
-                    result.append( instance.id )
-                    
-                request.session['instances'].append( result )            
-                
-            dajax.script('DeleteCallback();') 
+        dajax.script('DeleteCallback();') 
            
     except IndexError:
         print 'sorry, no ' + str( course )   
@@ -102,7 +98,7 @@ def add_course(request, course_id):
     course = Course.objects.get(id=course_id)
 
     out = "%s - % s" % ( str(course), course.title )
-    display = "<p id=\"%s\">%s</p>" % ( str(course.id), out )
+    display = "<p course_id=\"%s\">%s</p>" % ( str(course.id), out )
 
     dajax.append('#added_courses', 'innerHTML', display)
 	
@@ -112,7 +108,8 @@ def add_course(request, course_id):
     if not 'courses' in request.session:
         request.session['courses'] = []
 
-    request.session['courses'].append( { "id":course.id, "out":out } )
+    courseId = course.id
+    request.session['courses'].append( { "id":courseId, "out":out } )
     
     courseInstances = CourseInstance.objects.filter(course_id=course_id)
     
@@ -144,7 +141,6 @@ def make_schedules( request ):
 @dajaxice_register
 def get_schedules( request, start, end ):
     schedules = []
-    
 	# Make sure that there are schedules to process
     if not 'schedules' in request.session:
         request.session['schedules'] = []
@@ -158,12 +154,12 @@ def get_schedules( request, start, end ):
         start = 0
         
     if( end >= len(request.session['schedules']) ):
-        end = len(request.session['schedules'])-1
+        end = len(request.session['schedules'])
     
 	# If there are no schedules return an empty array
     if( len(request.session['schedules']) <= 0 ):
         return []
-    
+        
     # Convert each schedule into a json object
     for schedule in range( start, end ):
         courses = []
@@ -174,7 +170,7 @@ def get_schedules( request, start, end ):
             times.append( ci[0].section_times() )
             
             # Add the course to the course array
-            courses.append( { "title":course.title, "subject":course.subject_no, "times":times } )
+            courses.append( { "title":course.title, "subject":course.subject_no, "times":times, "id":course.id } )
      
         schedules.append( courses )
     

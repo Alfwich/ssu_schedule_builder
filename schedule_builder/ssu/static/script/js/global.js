@@ -202,7 +202,7 @@ var context =
 	menuOffset:{ "x": 140, "y": 0 },
     classBlockMenu:
     {
-        "Remove Class":"Remove",
+        "Remove Class":1,
         "Remove Time":
             {
                 "All at this time":"Remove",
@@ -437,7 +437,7 @@ function ProcessSessionCourses(data)
     {
         var p = $("<p>",{
             text:data[course].out,
-            id:data[course].id,
+            course_id:data[course].id,
         });
         $("#added_courses").append( p );
     }
@@ -486,14 +486,7 @@ function LoadSchedule( schedule_id )
     ClearSchedule();
     
     // Set labels to the current schedules
-    if( schedule.schedules.length > 0 )
-    {
-        $(".schedule_label").text( "Schedules( "+(schedule_id+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules-1)+")");
-    }
-    else
-    {
-        $(".schedule_label").text( "Schedules" );    
-    }
+    SetScheduleLabel()
 
     // Render the time blocks
     for( var c in schedule.schedules[schedule_id] )
@@ -504,7 +497,7 @@ function LoadSchedule( schedule_id )
             var block = course.times[b];
             for( var t in block )
             {
-                AddDayBlock( course.subject, block[t].day, block[t].start, block[t].end );
+                AddDayBlock( course, block[t] );
             }
         }
     }
@@ -555,9 +548,8 @@ function PrevSchedule()
     LoadSchedule( schedule.currentSchedule );   
 }
 
-function AddDayBlock( title, day, start, end )
+function AddDayBlock( course, instance )
 {
-
     var abbrToDay = {
         "M":"monday",
         "T":"tuesday",
@@ -568,26 +560,27 @@ function AddDayBlock( title, day, start, end )
         "ARR":"null",        
     };
 
-    var entries = $("."+abbrToDay[day]+".week_day").children(".entries");
-    var lengthValue = DifferenceMilitary( start, end );
-    var startValue = MilitaryFloatValue( start )-8;
+    var entries = $("."+abbrToDay[instance.day]+".week_day").children(".entries");
+    var lengthValue = DifferenceMilitary( instance.start, instance.end );
+    var startValue = MilitaryFloatValue( instance.start )-8;
     var divWrapper = $("<div>",{
         class:"class_block_wrapper",
     });
         
     var block = $("<div>",{
         class:"class_block",
+        course_id:course.id
     });
     
     $(block).click( function(e){
-        ContextInit( this, context.classBlockMenu, ClassBlockCallback );
+        ContextInit( this, context.classBlockMenu, courseCallback );
     }); 
     
     var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
     var blockWidth = ($(".calendar").width() * 0.13)-2;
     
     $(block).css( { height: (lengthValue*heightMultiple)+"px", top: startValue*heightMultiple, width:(blockWidth)+"px" } );
-    $(block).text( title );
+    $(block).text( course.subject );
     
     $(divWrapper).append( block );
     $(entries).append( divWrapper );
@@ -642,22 +635,27 @@ function ScheduleData( data )
 {
     if( data instanceof Array )
     {
-        if( data.length > 0 )
-        {
-            $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules-1)+")");    
-        }
-        else
-        {
-            $(".schedule_label").text( "Schedules" );            
-        }
         schedule.schedules = data;
     }
+    SetScheduleLabel();
     console.log( "done" );    
 }
 
 function ToConsole( data )
 {
     console.log( data );
+}
+
+function SetScheduleLabel()
+{
+    if( schedule.schedules[0].length > 0 )
+    {
+        $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
+    }
+    else
+    {
+        $(".schedule_label").text( "Schedules");
+    }
 }
 
 
@@ -744,9 +742,12 @@ function ge_callback() {
 
 function courseCallback(value)
 {
-    var id = $(context.target).attr("id");
-    Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
-    $(context.target).remove();
+    if( value == 1 )
+    {
+        var id = $(context.target).attr("course_id");
+        Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
+        $("*[course_id="+id+"]").remove();
+    }
 }
 
 function BindCourseClick()
@@ -771,6 +772,7 @@ function AddCourseCallback()
 
 function DeleteCallback()
 {
+    schedule.currentSchedule = 0;
     // Get the new schedules
     CalcSchedules();
 }
