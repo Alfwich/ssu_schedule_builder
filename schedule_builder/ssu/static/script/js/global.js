@@ -164,7 +164,8 @@ function SetupWindows()
     // Set the width of each panel
     $(".window").each(function(){
         var windowId = $(this).attr("id");
-        $(this).css( { "z-index":(windows.length-windowId), "width":($(application).width()-sideMenuSize) } );
+        $(this).css( { "z-index":(windows.length-windowId), "width":( ($(application).width()-sideMenuSize) ) - 50 } );
+		$(this).children(".content").css( { left:100, top:50, "width": ($(application).width()-sideMenuSize) - 200, "height":$(application).height() } );
     });
     
     // Close all of the windows
@@ -624,7 +625,12 @@ function ToConsole( data )
 }
 
 
+// Showtime!
 $(function() {
+
+	Init();
+	BindEvents();
+
     $('.search.area > input').keyup(function(e) {
         if (e.keyCode == 13 && $('.course.list .selected button').length > 0) {
             $('.course.list .selected button').click();
@@ -734,8 +740,3 @@ function ge_callback() {
 
 
 
-// Showtime!
-$(document).ready( function(){
-	Init();
-	BindEvents();
-});

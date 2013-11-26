@@ -63,10 +63,11 @@ Arthur Wuterich
 
 .window .content
 {
-    width: 100%;
-    height: 100%;
+	position: absolute;
+	/*
     padding: 50px;
     padding-left: 100px;
+	*/
 }
 
 /* Rotation css for label titles */
@@ -165,11 +166,13 @@ Arthur Wuterich
 {
     height: 50%;
     width: 100%;
+	white-space:nowrap;
+	
 }
 
 .week_day
 {
-    width: 14%;
+    width: 13%;
     height: 100%;
     float:left;
     border-right: 1px solid #EEE;
