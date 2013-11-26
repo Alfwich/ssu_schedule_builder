@@ -27,7 +27,7 @@ class CourseInstance(models.Model):
         times = []
         for section in self.section_set.all():
             for time in section.sectiontime_set.all():
-                times.append( dict(start_time=time.start_time, end_time=time.end_time, day=time.day) )
+                times.append( dict(start=time.start_time, end=time.end_time, day=time.day) )
         return times
 
     def __unicode__(self):

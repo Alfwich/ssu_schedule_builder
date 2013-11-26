@@ -193,55 +193,19 @@ var context =
 	contextMenuAnimation:{ duration: 100 },
 	depth:0,
 	menuOffset:{ "x": 140, "y": 0 },
-	slotMenu: 
-	{
-		"Search":SearchSelection,
-		"Category":
-		{
-			"GE":
-				{
-					"A":
-					{
-						"1": "A1",
-						"2": "A2",
-						"3": "A3",
-					},
-					"B":
-					{
-						"1": "B1",
-						"2": "B2",
-						"3": "B3",
-					},
-					"C":"C",
-					"D":
-					{
-						"1": "D1", 
-						"2": "D2", 
-						"3": "D3", 
-						"4": "D4", 
-						"5": "D5",
-					},
-					"E":"E",
-				},
-			"Major Requirment":
-			{
-				"CS":"CS: Major",
-			},
-			"Major Elective":
-			{
-				"CS":"CS: Minor",		
-			},		
-		},
-	},
-	
 	classBlockMenu:
 	{
 		"Remove Class":"Remove",
         "Remove Time":
             {
-                "All tn this Time":"Remove",
-                "All After this Time":"Remove",
+                "All at this time":"Remove",
+                "All After this time":"Remove",
             },
+        "Remove Class and Time":
+            {
+                "All at this time":"Remove",
+                "All After this time":"Remove",
+            },            
 	},
 };
 function SearchSelection( node, callback )
@@ -488,10 +452,13 @@ function LoadSchedule( schedule_id )
     for( var c in schedules[schedule_id] )
     {
         var course = schedules[schedule_id][c];
-        for( var t in course.times )
+        for( var b in course.times )
         {
-            var block = course.times[t];
-            AddDayBlock( course.subject, block.day, block.start, block.end );
+            var block = course.times[b];
+            for( var t in block )
+            {
+                AddDayBlock( course.subject, block[t].day, block[t].start, block[t].end );
+            }
         }
     }
 }
@@ -638,6 +605,7 @@ function ScheduleData( data )
     {
         schedules = data;
         console.log( "done" );
+        LoadSchedule(0);
     }
 }
 
@@ -723,6 +691,24 @@ function ge_callback() {
 	}
 	$('.ge_result.list input[type=checkbox]').change(ge_change);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

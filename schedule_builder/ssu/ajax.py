@@ -10,6 +10,10 @@ import json
 import random
 
 @dajaxice_register
+def get_session_courses(request):
+    return ""
+
+@dajaxice_register
 def find_courses(request, query):
     dajax = Dajax()
 
@@ -67,8 +71,6 @@ def remove_course(request, course):
         
     request.session.modified = True    
     return dajax.json()
-
-
 
 @dajaxice_register
 def add_course(request, course_id):
@@ -132,13 +134,9 @@ def get_schedules( request, start, end ):
         courses = []
         for instance in request.session['schedules'][schedule]:
             times = []
-            course = Course.objects.filter(id=CourseInstance.objects.filter(id=instance)[0].course_id)[0]
-            sections = Section.objects.filter(course_instance_id=instance)
-            for section in sections:
-                block = SectionTime.objects.filter(section_id=section)[0]
-                
-                # Add the times to the course object
-                times.append( { "day":block.day, "start":block.start_time, "end":block.end_time } );
+            ci = CourseInstance.objects.filter(id=instance)
+            course = ci[0].course
+            times.append( ci[0].section_times() )
             
             # Add the course to the course array
             courses.append( { "title":course.title, "subject":course.subject_no, "times":times } )
