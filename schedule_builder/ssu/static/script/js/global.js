@@ -730,6 +730,3 @@ $(document).ready( function(){
 	Init();
 	BindEvents();
 });
-    Init();
-    BindEvents();
-});
