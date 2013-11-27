@@ -231,6 +231,21 @@ Arthur Wuterich
 .schedule_inputs
 {
     margin-top: 10px;
+    height: 50px;
+    width: 200px;
+}
+.schedule_inputs input
+{
+    height: 100%;
+}
+.loading
+{
+    display: none;
+    height: 50px;
+    width: 50px;
+    background-image: url( "/static/image/loading.gif" );
+    background-size: 100% 100%;
+    float: right;
 }
 
 .list span { display: inline-block; width: 300px; font-size: 12px; }

@@ -32,6 +32,19 @@ function Init()
     Dajaxice.ssu.get_session_courses( ProcessSessionCourses );
         
 }
+function SetLoading(state)
+{
+    if( state )
+    {
+        $(".loading").fadeIn();
+        $(".disable_on_load").attr("disabled", "disabled");
+    }
+    else
+    {
+        $(".loading").fadeOut();
+        $(".disable_on_load").removeAttr("disabled");
+    }
+}
 /*
 function SetupAutoCompleteTags( data )
 {
@@ -423,6 +436,18 @@ var schedule = {
     scheduleLimit:{ min:0, max:0 },
     scheduleStep:30,
     maxSchedules:0,
+    lock:false,
+}
+function ScheduleLock()
+{
+    SetLoading( true );
+    schedule.lock = true;
+}
+
+function ScheduleUnlock()
+{
+    SetLoading( false );
+    schedule.lock = false;
 }
 function ProcessSessionCourses(data)
 {
@@ -503,7 +528,7 @@ function LoadSchedule( schedule_id )
     }
     
     // Check to see if the current schedule is adjacent to an edge entry
-    if( ( schedule_id <= (schedule.scheduleStep/2) && schedule.scheduleLimit.min > 0 ) || ( schedule.scheduleLimit.max < schedule.maxSchedules && schedule_id >= ( (schedule.schedules.length-1) - (schedule.scheduleStep/2) ) ) )
+    if( ( schedule_id <= 0 && schedule.scheduleLimit.min > 0 ) || ( schedule.scheduleLimit.max < schedule.maxSchedules && schedule_id >= ( (schedule.schedules.length-1) ) ) )
     {
         var oldPos = schedule.currentSchedule+schedule.scheduleLimit.min;
     
@@ -528,6 +553,11 @@ function LoadSchedule( schedule_id )
 
 function NextSchedule()
 {
+    if( schedule.lock )
+    {
+        return;
+    }
+
     schedule.currentSchedule++;
     if( schedule.scheduleLimit.min+schedule.currentSchedule >= schedule.maxSchedules-1 )
     {
@@ -539,6 +569,11 @@ function NextSchedule()
 
 function PrevSchedule()
 {
+    if( schedule.lock )
+    {
+        return;
+    }
+    
     schedule.currentSchedule--;
     if( schedule.scheduleLimit.min+schedule.currentSchedule < 0 )
     {
@@ -628,11 +663,13 @@ function SetMaxNumberOfSchedules( data )
 
 function GetScheduleData( start, end )
 {
+    ScheduleLock();
     Dajaxice.ssu.get_schedules( ScheduleData, { start:start, end:end } );
 }
 
 function ScheduleData( data )
 {
+    ScheduleUnlock();
     if( data instanceof Array )
     {
         schedule.schedules = data;
