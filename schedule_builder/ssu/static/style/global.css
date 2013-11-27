@@ -17,6 +17,7 @@ Arthur Wuterich
     background-color:#D8D8D8;
     width: 100%;
     height: 100%;
+    min-width:1024px;
 }
 
 /* Global Application */
@@ -99,6 +100,7 @@ Arthur Wuterich
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    cursor: pointer;    
 }
 
 #side_window
@@ -166,7 +168,7 @@ Arthur Wuterich
 
 .calendar
 {
-    height: 50%;
+    height: 350px;
     width: 100%;
 	white-space:nowrap;
 	
@@ -189,6 +191,7 @@ Arthur Wuterich
     background-color: #62A4DB;
     border-radius: 3px;
     border-bottom: 1px solid #A0C0DB;
+    font-size: 80%;
 }
 .calendar .monday, .calendar .wednesday, .calendar .friday
 {
@@ -230,8 +233,19 @@ Arthur Wuterich
 }
 .schedule_inputs
 {
-    margin-top: 10px;
     height: 50px;
+    width: 200px;
+    float: left;
+}
+.schedule_inputs .prev, .schedule_inputs .next
+{
+    float: left;
+}
+.inputs_cell
+{
+    padding: 0px;
+    margin: 0px;
+    vertical-align: top;
     width: 200px;
 }
 .schedule_inputs input
@@ -245,28 +259,80 @@ Arthur Wuterich
     width: 50px;
     background-image: url( "/static/image/loading.gif" );
     background-size: 100% 100%;
+    float: left;
+}
+.schedule_details
+{
     float: right;
+    padding: 3px 3px 3px 3px;
+    border-radius: 2px;
+    background-color: #E2E2E2;
+    border: 1px solid #DDD;
+    width: 100%;
+}
+.schedule_details_row
+{
+    background-color: #EEE;
+    border-bottom: 1px solid #CCC;
+    padding: 0px 2px 0px 2px;
+    transition:background-color .2s;
+    -moz-transition: background-color .2s;
+}
+.schedule_details_row:hover
+{
+    background-color: #DDD;
+}
+.schdeule_controls
+{
+    margin-top: 10px;
+    width: 91%;
+    height: 100%;
+    padding: 5px;
+    border-radius: 2px;
+    background-color: #EEE;
+    border-radius: #DDD;
+}
+.schedule_table
+{
+    display:table;
+}
+.schedule_row
+{
+    display:table-row;
+}
+.schedule_cell
+{
+    display:table-cell;
 }
 
 .list span { display: inline-block; width: 300px; font-size: 12px; }
 #added_courses { width: 300px; font-size: 12px; }
 #added_courses p 
 { 
-    cursor: pointer;
-    height: 20px;
-    background-color:transparent;
+    background-color: #EEE;
+    border-bottom: 1px solid #CCC;
+    padding: 0px 2px 0px 2px;
     transition:background-color .2s;
-    -moz-transition: background-color .2s;    
+    -moz-transition: background-color .2s;
+    width:250px; 
+    margin: 0px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;      
 }
 #added_courses p:hover
 { 
-    background-color:#EEE;
+    background-color: #DDD;
 }
 .level { display: inline-block; vertical-align: top; margin: 0 10px; }
 .selected { background-color: yellow; }
 .option {
-    background-color: #214583;
-    width: 120px;
+    background-color: #005CA8;
+    width: 180px;
     display: block;
     cursor: pointer;
     padding: 5px;
@@ -276,6 +342,13 @@ Arthur Wuterich
     border-radius: 5px;
     text-align: center;
     font-size: 13px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;  
 }
 #level1 {
     margin-top: 5px;

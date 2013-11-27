@@ -437,7 +437,16 @@ var schedule = {
     scheduleStep:30,
     maxSchedules:0,
     lock:false,
-}
+    abbrToDay:{
+        "M":"monday",
+        "T":"tuesday",
+        "W":"wednesday",
+        "TH":"thursday",
+        "F":"friday",
+        "S":"saturday",
+        "ARR":"null",        
+    },
+};
 function ScheduleLock()
 {
     SetLoading( true );
@@ -473,6 +482,7 @@ function ProcessSessionCourses(data)
 function ClearSchedule()
 {
     $(".week_day .entries").children().remove();
+    $(".schedule_details").children().remove();
 }
 
 function PadTimeString( time )
@@ -559,7 +569,7 @@ function NextSchedule()
     }
 
     schedule.currentSchedule++;
-    if( schedule.scheduleLimit.min+schedule.currentSchedule >= schedule.maxSchedules-1 )
+    if( schedule.scheduleLimit.min+schedule.currentSchedule >= schedule.maxSchedules )
     {
         schedule.currentSchedule--
     }
@@ -585,17 +595,7 @@ function PrevSchedule()
 
 function AddDayBlock( course, instance )
 {
-    var abbrToDay = {
-        "M":"monday",
-        "T":"tuesday",
-        "W":"wednesday",
-        "TH":"thursday",
-        "F":"friday",
-        "S":"saturday",
-        "ARR":"null",        
-    };
-
-    var entries = $("."+abbrToDay[instance.day]+".week_day").children(".entries");
+    var entries = $("."+schedule.abbrToDay[instance.day]+".week_day").children(".entries");
     var lengthValue = DifferenceMilitary( instance.start, instance.end );
     var startValue = MilitaryFloatValue( instance.start )-8;
     var divWrapper = $("<div>",{
@@ -603,7 +603,7 @@ function AddDayBlock( course, instance )
     });
         
     var block = $("<div>",{
-        class:"class_block",
+        class:"class_block no_select",
         course_id:course.id
     });
     
@@ -619,6 +619,19 @@ function AddDayBlock( course, instance )
     
     $(divWrapper).append( block );
     $(entries).append( divWrapper );
+    
+    var details = $("<div>",{
+        text:course.subject + ": " + instance.day + ", " + instance.start + " - " + instance.end,
+        class:"schedule_details_row no_select",
+        course_id:course.id,        
+    });
+    
+    $(details).click( function(e){
+        ContextInit( this, context.classBlockMenu, courseCallback );
+    });     
+    
+    // Add details to schedule details
+    $(".schedule_details").append( details );
 }
 
 /*
@@ -685,9 +698,9 @@ function ToConsole( data )
 
 function SetScheduleLabel()
 {
-    if( schedule.schedules[0].length > 0 )
+    if( schedule.schedules instanceof Array && schedule.schedules[0].length > 0 )
     {
-        $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
+       $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
     }
     else
     {

@@ -32,6 +32,7 @@
             <div class="rotate label_wrapper">Classes</div>
         </div>
         <div class="content">
+        <div>Courses:</div>
         <div id="added_courses"></div>
         <div id="next">
             <div class="level" id="level1">
@@ -142,10 +143,19 @@
                     </div>                  
                 </div>              
             </div>
-            <div class="schedule_inputs">
-                <input type="button" class="prev disable_on_load" value="Previous" />
-                <input type="button" class="next disable_on_load" value="Next" />
-                <div class="loading"></div>
+            <div class="schdeule_controls schedule_table">
+                <div class="schedule_row">
+                    <div class="schedule_cell inputs_cell">
+                        <div class="schedule_inputs">                
+                            <input type="button" class="prev disable_on_load no_select" value="Previous" />            
+                            <input type="button" class="next disable_on_load no_select" value="Next" />
+                            <div class="loading"></div>                                    
+                        </div>
+                    </div>
+                    <div class="schedule_cell">                    
+                        <div class="schedule_details"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
