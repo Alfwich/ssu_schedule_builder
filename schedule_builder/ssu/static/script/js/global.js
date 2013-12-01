@@ -460,18 +460,20 @@ function ScheduleUnlock()
 }
 function ProcessSessionCourses(data)
 {
+    cur_slot = data.length;
     // If there are courses returned get schedule data
     if( data.length > 0 )
     {
         CalcSchedules();
     }
 
+    $("#added_courses").empty()
     // Add the courses to the list
-    for( course in data )
+    for( var i = 0; i < data.length; i++ )
     {
         var p = $("<p>",{
-            text:data[course].out,
-            course_id:data[course].id,
+            text:data[i],
+            slot_id:i,
         });
         $("#added_courses").append( p );
     }
@@ -659,9 +661,9 @@ function CalcSchedules()
     Dajaxice.ssu.make_schedules( SetMaxNumberOfSchedules );
 }
 
-function RemoveCourse( course_id )
+function RemoveCourse( slot )
 {
-    Dajaxice.ssu.remove_course( Dajax.process, { course:course_id } );
+    Dajaxice.ssu.remove_course( Dajax.process, { slot_id:slot } );
     Dajaxice.ssu.make_schedules( Dajax.process );
 }
 
@@ -775,9 +777,9 @@ function courseCallback(value)
 {
     if( value == 1 )
     {
-        var id = $(context.target).attr("course_id");
+        var id = $(context.target).attr("slot_id");
         Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
-        $("*[course_id="+id+"]").remove();
+        cur_slot--;
     }
 }
 

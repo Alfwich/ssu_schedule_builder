@@ -11,7 +11,7 @@ import random
 
 @dajaxice_register
 def get_session_courses(request):
-    if not 'courses' in request.session:
+    if not 'slots' in request.session:
         request.session['slots'] = []
         
     return json.dumps( request.session['slots'] )
@@ -71,20 +71,11 @@ def remove_course(request, id):
     
     try:
         # Remove all courses with the id
-        request.session['slots'] = [x for x in request.session['slots'] if not int(x['id']) == int(id)]
-                
-        request.session['instances'] = []   
-        
-        # Recalc course instances *** Better way to do this? ***
-        for c in request.session['slots']:
-            result = []
-            courseInstances = CourseInstance.objects.filter(course_id=c['id'])
-            for instance in courseInstances:
-                result.append( instance.id )
-                
-            request.session['instances'].append( result )            
-            
+        del request.session['slots'][int(id)]
+        del request.session['instances'][int(id)]
+
         dajax.script('DeleteCallback();') 
+        dajax.script('ProcessSessionCourses(' + json.dumps(request.session['slots']) + ');')
            
     except IndexError:
         print 'sorry, no ' + str( course )   
@@ -118,7 +109,7 @@ def add_course(request, course_id, slot_id):
     if not 'slots' in request.session:
         request.session['slots'] = []
 
-    request.session['slots'].append( { "slot_id":slot_id, "out":out } )
+    request.session['slots'].append( out )
     
     result = []
     for cur_course in courses:
