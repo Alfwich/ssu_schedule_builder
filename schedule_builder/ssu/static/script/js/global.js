@@ -186,10 +186,10 @@ function SetupWindows()
     
     // Close all of the windows
     CloseAllContextMenus();
-    var oldDuration = windowAnimationOptions.duration;
-    windowAnimationOptions.duration = 0;
+    //var oldDuration = windowAnimationOptions.duration;
+    //windowAnimationOptions.duration = 0;
     ToggleWindow( current_window, true );   
-    windowAnimationOptions.duration = oldDuration;
+    //windowAnimationOptions.duration = oldDuration;
 }
 
 function WindowOpenComplete()
@@ -217,10 +217,10 @@ var context =
     {
         "Remove Class":1,
         "Remove Time":
-            {
-                "All at this time":"Remove",
-                "All After this time":"Remove",
-            },
+        {
+            "All at this time":"Remove",
+            "All After this time":"Remove",
+        },
         "Remove Class and Time":
             {
                 "All at this time":"Remove",
@@ -708,57 +708,6 @@ function SetScheduleLabel()
     }
 }
 
-
-// Showtime!
-$(function() {
-
-	Init();
-	BindEvents();
-
-    $('.search.area > input').keyup(function(e) {
-        if (e.keyCode == 13 && $('.course.list .selected button').length > 0) {
-            $('.course.list .selected button').click();
-        }
-
-        else if (e.keyCode == 40) {
-            selected = $('.course.list .selected');
-            if (selected.next().length == 1) {
-                selected.removeClass('selected');
-                selected.next().addClass('selected');
-            }
-        }
-
-        else if (e.keyCode == 38) {
-            selected = $('.course.list .selected');
-            if (selected.prev().length == 1) {
-                selected.removeClass('selected');
-                selected.prev().addClass('selected');
-            }
-        }
-
-        else {
-            Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() });
-        }
-    });
-
-    $('.ge-final.option').hover(function() {
-        Dajaxice.ssu.populate_ge_result(Dajax.process, { code: 'ge' + $(this).attr('id') });
-    });
-
-    $('.option').hover(function() {
-        level_object = $(this).parent();
-        if ( level_object.attr('id') == undefined ) level_object = level_object.parent();
-        next_level = parseInt(level_object.attr('id').slice(-1)) + 1;
-        hide_levels_above(next_level);
-        $('#level' + next_level).show();
-        $('#level' + next_level).offset( { top: $(this).offset().top } );
-        $('#level' + next_level).children().hide();
-        $('#level' + next_level + ' .' + $(this).attr('class').split(" ")[0]).show();
-    });
-
-    hide_levels_above(1);
-});
-
 var ge_selected = {}
 
 function ge_change() {
@@ -827,7 +776,55 @@ function DeleteCallback()
     CalcSchedules();
 }
 
+// Showtime!
+$(window).load( function(e){
 
+	Init();
+	BindEvents();
+
+    $('.search.area > input').keyup(function(e) {
+        if (e.keyCode == 13 && $('.course.list .selected button').length > 0) {
+            $('.course.list .selected button').click();
+        }
+
+        else if (e.keyCode == 40) {
+            selected = $('.course.list .selected');
+            if (selected.next().length == 1) {
+                selected.removeClass('selected');
+                selected.next().addClass('selected');
+            }
+        }
+
+        else if (e.keyCode == 38) {
+            selected = $('.course.list .selected');
+            if (selected.prev().length == 1) {
+                selected.removeClass('selected');
+                selected.prev().addClass('selected');
+            }
+        }
+
+        else {
+            Dajaxice.ssu.find_courses(Dajax.process, { query: $(this).val() });
+        }
+    });
+
+    $('.ge-final.option').hover(function() {
+        Dajaxice.ssu.populate_ge_result(Dajax.process, { code: 'ge' + $(this).attr('id') });
+    });
+
+    $('.option').hover(function() {
+        level_object = $(this).parent();
+        if ( level_object.attr('id') == undefined ) level_object = level_object.parent();
+        next_level = parseInt(level_object.attr('id').slice(-1)) + 1;
+        hide_levels_above(next_level);
+        $('#level' + next_level).show();
+        $('#level' + next_level).offset( { top: $(this).offset().top } );
+        $('#level' + next_level).children().hide();
+        $('#level' + next_level + ' .' + $(this).attr('class').split(" ")[0]).show();
+    });
+
+    hide_levels_above(1);
+});
 
 
 

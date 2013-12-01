@@ -282,11 +282,10 @@ Arthur Wuterich
 {
     background-color: #DDD;
 }
-.schdeule_controls
+.schedule_controls
 {
     margin-top: 10px;
     width: 91%;
-    height: 100%;
     padding: 5px;
     border-radius: 2px;
     background-color: #EEE;
@@ -303,6 +302,13 @@ Arthur Wuterich
 .schedule_cell
 {
     display:table-cell;
+}
+.schedule_options
+{
+    width: 100%;
+    height: 300px;
+    border-radius: 2px;
+    background-color: #E2E2E2;    
 }
 
 .list span { display: inline-block; width: 300px; font-size: 12px; }
