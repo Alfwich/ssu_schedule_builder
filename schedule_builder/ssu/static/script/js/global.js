@@ -708,26 +708,59 @@ function SetScheduleLabel()
     }
 }
 
-var ge_selected = {}
+var ge_selected = {};
+var cur_slot = 0;
 
 function ge_change() {
     if (this.checked) {
-        ge_selected[this.value] = true;
+        ge_selected[this.value] = $(this).attr('data');
     }
     else {
         delete ge_selected[this.value];
     }
+
+    var out = ""
+
+    for (var key in ge_selected) {
+        if ( ge_selected.hasOwnProperty(key) ) {
+            out += ge_selected[key] + " ";
+        }
+    }
+
+    if ( $('#added_courses p').length == cur_slot) {
+        $('#added_courses').append('<p slot_id="' + cur_slot + '">' + out + "</p>" + '<div class="option" onclick="add_group();">Add Group</div>');
+    }
+    else {
+        $('#added_courses p')[cur_slot].innerHTML = out;
+    }
+        
 }
 
 function hide_levels_above(level) {
     while ( (level_to_hide = $('#level' + ++level)).length != 0 ) level_to_hide.hide();
 }
 
+function add_group() {
+    var ids = [];
+
+    for (var key in ge_selected) {
+        if ( ge_selected.hasOwnProperty(key) ) {
+            ids.push(key);
+        }
+    }
+
+    hide_levels_above(1)
+    Dajaxice.ssu.add_course(Dajax.process, { course_id: ids, slot_id: cur_slot });
+    ge_selected = {};
+    cur_slot++;
+}
+
 function add_course(id) {
     $('.search.area > input').val('');
     $('.course.list').html('');
-    Dajaxice.ssu.add_course(Dajax.process, { course_id: id });
+    Dajaxice.ssu.add_course(Dajax.process, { course_id: id, slot_id: cur_slot });
     $('.search.area > input').focus();
+    cur_slot++;
 }
 
 function ge_callback() {
@@ -736,7 +769,6 @@ function ge_callback() {
     for (var i = 0; i < boxes.length; ++i) {
         if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
     }
-    $('.ge_result.list input[type=checkbox]').change(ge_change);
 }
 
 function courseCallback(value)
@@ -826,33 +858,7 @@ $(window).load( function(e){
     hide_levels_above(1);
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function sessionCheck() {
+    Dajaxice.ssu.check_session(Dajax.process);
+}
 

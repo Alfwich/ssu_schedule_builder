@@ -12,9 +12,9 @@ import random
 @dajaxice_register
 def get_session_courses(request):
     if not 'courses' in request.session:
-            request.session['courses'] = []
-            
-    return json.dumps( request.session['courses'] )
+        request.session['slots'] = []
+        
+    return json.dumps( request.session['slots'] )
 
 @dajaxice_register
 def find_courses(request, query):
@@ -49,21 +49,21 @@ def populate_ge_result(request, code):
     out = []
 
     for course in courses:
-        out.append("<div><span>%s - %s</span><input type='checkbox' name='courses' value='%s'</div>" % ( str(course), course.title, course.id ))
+        out.append("<div><span>%s - %s</span><input type='checkbox' name='courses' data='%s' value='%s'</div>" % ( str(course), course.title, course.subject_no, course.id ))
 
     dajax.assign('.ge_result.list', 'innerHTML', ''.join(out))
 
     dajax.script('ge_callback();')
     
-    request.session.modified = True	
+    request.session.modified = True 
     return dajax.json()
 
 @dajaxice_register
 def remove_course(request, id):
     dajax = Dajax()
     
-    if not 'courses' in request.session:
-        request.session['courses'] = []
+    if not 'slots' in request.session:
+        request.session['slots'] = []
         return dajax.json()
         
     if not 'instances' in request.session:
@@ -71,12 +71,12 @@ def remove_course(request, id):
     
     try:
         # Remove all courses with the id
-        request.session['courses'] = [x for x in request.session['courses'] if not int(x['id']) == int(id)]
+        request.session['slots'] = [x for x in request.session['slots'] if not int(x['id']) == int(id)]
                 
         request.session['instances'] = []   
         
         # Recalc course instances *** Better way to do this? ***
-        for c in request.session['courses']:
+        for c in request.session['slots']:
             result = []
             courseInstances = CourseInstance.objects.filter(course_id=c['id'])
             for instance in courseInstances:
@@ -93,45 +93,53 @@ def remove_course(request, id):
     return dajax.json()
 
 @dajaxice_register
-def add_course(request, course_id):
+def add_course(request, course_id, slot_id):
     dajax = Dajax()
-    course = Course.objects.get(id=course_id)
+    courses = []
+    out = ""
 
-    out = "%s - % s" % ( str(course), course.title )
-    display = "<p course_id=\"%s\">%s</p>" % ( str(course.id), out )
+    if isinstance(course_id, int):
+        course = Course.objects.get(id=course_id)
+        courses.append(course)
 
-    dajax.append('#added_courses', 'innerHTML', display)
-	
+        out += "%s - % s" % ( str(course), course.title )
+        display = "<p slot_id=\"%s\">%s</p>" % ( slot_id, out )
+
+        dajax.append('#added_courses', 'innerHTML', display)
+    else:
+        for one_course in course_id:
+            course = Course.objects.get(id=one_course)
+            out += "%s " % course.subject_no
+            courses.append(course)
+    
     if not 'instances' in request.session:
         request.session['instances'] = []
-		
-    if not 'courses' in request.session:
-        request.session['courses'] = []
+        
+    if not 'slots' in request.session:
+        request.session['slots'] = []
 
-    courseId = course.id
-    request.session['courses'].append( { "id":courseId, "out":out } )
-    
-    courseInstances = CourseInstance.objects.filter(course_id=course_id)
+    request.session['slots'].append( { "slot_id":slot_id, "out":out } )
     
     result = []
-    for instance in courseInstances:
-        result.append( instance.id )
-		
+    for cur_course in courses:
+        for instance in cur_course.courseinstance_set.all():
+            result.append( instance.id )
+
     request.session['instances'].append( result )
     
     dajax.script("AddCourseCallback();");
-		
+        
     request.session.modified = True
     return dajax.json()
 
-@dajaxice_register	
+@dajaxice_register  
 def make_schedules( request ):
 
     if not 'instances' in request.session:
         request.session['instances'] = []
 
     if not 'schedules' in request.session:
-        request.session['schedules'] = []	
+        request.session['schedules'] = []   
 
     request.session['schedules'] = list( product( *request.session['instances'] ) )
     request.session.modified = True
@@ -141,12 +149,12 @@ def make_schedules( request ):
 @dajaxice_register
 def get_schedules( request, start, end ):
     schedules = []
-	# Make sure that there are schedules to process
+    # Make sure that there are schedules to process
     if not 'schedules' in request.session:
         request.session['schedules'] = []
         return
     
-	# If end is 0 then return all of the schedules
+    # If end is 0 then return all of the schedules
     if( end == 0 ):
         end = len(request.session['schedules'])
         
@@ -156,7 +164,7 @@ def get_schedules( request, start, end ):
     if( end >= len(request.session['schedules']) ):
         end = len(request.session['schedules'])
     
-	# If there are no schedules return an empty array
+    # If there are no schedules return an empty array
     if( len(request.session['schedules']) <= 0 ):
         return []
         
@@ -177,7 +185,7 @@ def get_schedules( request, start, end ):
     # Return the data to the client
     return json.dumps( schedules )
     
-	
+    
 @dajaxice_register
 def render_schedule( request, width, height, schedule_id ):
 
@@ -210,7 +218,7 @@ def render_schedule( request, width, height, schedule_id ):
         schedule_id = 0;
 
     if( schedule_id <= 0 ):
-        schedule_id = len(request.session['schedules'])-1;         
+        schedule_id = len(request.session['schedules'])-1
 
     for instance in request.session['schedules'][schedule_id]:
         course = Course.objects.filter(id=CourseInstance.objects.filter(id=instance)[0].course_id)[0]
@@ -228,5 +236,5 @@ def render_schedule( request, width, height, schedule_id ):
             
     dajax.add_data( "", "SetScheduleEvents" )
     request.session.modified = True    
-    return dajax.json();
+    return dajax.json()
             
