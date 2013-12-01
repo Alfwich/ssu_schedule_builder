@@ -66,10 +66,7 @@ Arthur Wuterich
 .window .content
 {
 	position: absolute;
-	/*
-    padding: 50px;
-    padding-left: 100px;
-	*/
+    min-width: 1024px;
 }
 
 /* Rotation css for label titles */
@@ -338,7 +335,7 @@ Arthur Wuterich
 .selected { background-color: yellow; }
 .option {
     background-color: #005CA8;
-    width: 180px;
+    width: 90px;
     display: block;
     cursor: pointer;
     padding: 5px;
@@ -347,7 +344,7 @@ Arthur Wuterich
     font-weight: bold;
     border-radius: 5px;
     text-align: center;
-    font-size: 13px;
+    font-size: 12px;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;

@@ -186,10 +186,10 @@ function SetupWindows()
     
     // Close all of the windows
     CloseAllContextMenus();
-    //var oldDuration = windowAnimationOptions.duration;
-    //windowAnimationOptions.duration = 0;
+    var oldDuration = windowAnimationOptions.duration;
+    windowAnimationOptions.duration = 0;
     ToggleWindow( current_window, true );   
-    //windowAnimationOptions.duration = oldDuration;
+    windowAnimationOptions.duration = oldDuration;
 }
 
 function WindowOpenComplete()
