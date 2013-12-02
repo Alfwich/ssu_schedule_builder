@@ -30,6 +30,7 @@ function Init()
     }); 
     
     SetupWindows();
+    InitSchedule();
     
     // Get the courses already added for this session
     Dajaxice.ssu.get_session_courses( ProcessSessionCourses );
@@ -55,6 +56,7 @@ function SetLoading(state)
 function ResizeElements()
 {
     SetupWindows();
+    InitSchedule();
 }
 
 // Bind events to objects 
@@ -190,13 +192,6 @@ function WindowOpenComplete()
         }
     }
 }
-
-// General callback / function to log something
-function log( data )
-{ 
-    console.log( data ); 
-}
-
 
 ///////////////////////////////////
 //////////CONTEXT MENUS////////////
@@ -424,6 +419,9 @@ function ContextMenu( target, menu, callback )
         targetOffset = $(target).offset();
         $(window).css( { "left":targetOffset.left+context.menuOffset.x,"top":targetOffset.top } );
     }
+    
+    // Layer the window(s) above everything
+    $(window).css( "z-index", 5 );
         
     // Add the window to the screen
     $(window).css( { opacity:0, width:0+"px" } );
@@ -453,6 +451,52 @@ var schedule = {
         "ARR":"null",        
     },
 };
+
+// Will generate the visual elements of the schedule
+function InitSchedule()
+{
+    // Calculate the size of the new block
+    var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
+    var tagWidth = ($(".calendar").width() * 0.70);
+    
+    // Remove all numbers
+    $(".calendar_number_flare").remove();
+    
+    for(var i = 0; i < 15; i++ )
+    {
+        var tagText = "";
+        if( (i+8) >= 12 )
+        {
+            if( (i+8) == 12 )
+            {
+                tagText = "12PM";
+            }
+            else
+            {
+                tagText = (i-4)+"PM";
+            }
+        }
+        else
+        {
+            tagText = (i+8)+"AM";
+        }
+        var tag = $("<div>",{
+            text:tagText,
+            class:"calendar_number_flare no_select_np",
+        });
+        var offset = $(".week_day.sunday").offset();
+        var top = (i*heightMultiple)+117;
+        $(tag).css({ 
+            "position":"absolute",
+            "top":top,
+            "left":"3px",
+            "width":tagWidth,
+            "height":heightMultiple,
+        });
+        
+        $(".week_day.sunday").append( tag );
+    }
+}
 
 // Will lock the schedule while new data is being loaded
 function ScheduleLock()
@@ -516,7 +560,17 @@ function PadTimeString( time )
 // Returns an object with the int value of the hours and minutes from a time string
 function GetHourMinutes( time )
 {
-    var hours = parseInt( time.substring( 0, 2 ) );
+    var hours = 0;
+    // Workaround for firefox / safari not considering "09" = 9
+    if( time.charAt(0) == '0' )
+    {
+        hours = parseInt( time.substring( 1, 2 ) );
+    }
+    else
+    {
+        hours = parseInt( time.substring( 0, 2 ) );
+    }
+    
     var minutes = parseInt( time.substring( 2, 4 ) );
     
     return { "HH": hours, "MM": minutes }
@@ -630,7 +684,7 @@ function AddDayBlock( course, instance )
     // Length and start time of the block
     var lengthValue = DifferenceMilitary( instance.start, instance.end );
     var startValue = MilitaryFloatValue( instance.start )-8;
-    
+        
     // Wrapper for the block
     var divWrapper = $("<div>",{
         class:"class_block_wrapper",
@@ -650,6 +704,16 @@ function AddDayBlock( course, instance )
         ContextInit( this, context.dayBlockMenu, DayBlockContextCallback );
     }); 
     
+    // On Hover event to change z-index of elements
+    $(block).mouseover( function(e){
+        
+        // Push all other day blocks to the bottom
+        $(".class_block").css( "z-index", "auto" );
+            
+        // This is the top
+        $(this).css( "z-index", 1 );
+    });     
+    
     // Calculate the size of the new block
     var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
     var blockWidth = ($(".calendar").width() * 0.10)-2;
@@ -661,7 +725,18 @@ function AddDayBlock( course, instance )
     $(divWrapper).append( block );
     $(entries).append( divWrapper );
     
-    // Add a details row 
+    // Add a details row
+    // First check if there is already a row with the same instance id, if so add
+    // the time to the end of that row rather than make a new row
+    var row = $(".schedule_details_row[instance_id="+course.instance_id+"]");
+    
+    // If there is a row already add to it and shortcut out
+    if( row.length > 0 )
+    {
+        $(row[0]).text( $(row[0]).text() + ", " + instance.day + ", " + instance.start + " - " + instance.end );
+        return;
+    }
+    
     var details = $("<div>",{
         text:course.subject + ": " + instance.day + ", " + instance.start + " - " + instance.end,
         class:"schedule_details_row no_select",
@@ -683,18 +758,14 @@ function AddDayBlock( course, instance )
 // Calculates the schedules on the django end
 function CalcSchedules()
 {
+    // Lock the schedule
+    ScheduleLock();
+    
     // Reset the filters
     ResetFilters();
     
     // Process the schedules on the python end
     Dajaxice.ssu.make_schedules( MakeSchedulesCallback );
-}
-
-// Removes a course slot based on position in the django course array
-function RemoveCourse( slot )
-{
-    Dajaxice.ssu.remove_course( Dajax.process, { slot_id:slot } );
-    Dajaxice.ssu.make_schedules( Dajax.process );
 }
 
 // Callback for the make schedules function. This will return the number of schedules that can be loaded
@@ -736,12 +807,13 @@ function ScheduleDataCallback( data )
     LoadSchedule( schedule.currentSchedule );
     
     SetScheduleLabel();
-    console.log( "done" );    
+    log( "Done Loading Schedule Data" );    
 }
 
 // Will filter the current schedules based on 
-function FilterSchedules( )
+function FilterSchedules()
 {  
+    ScheduleLock();
     filter = { "filter":filters };
     Dajaxice.ssu.filter_schedules( MakeSchedulesCallback, filter );
 }
@@ -773,9 +845,15 @@ function SetScheduleLabel()
 ///////////////////////////////////
 ////////COURSE SEARCHING///////////
 ///////////////////////////////////
-
 var ge_selected = {};
 var cur_slot = 0;
+
+// Removes a course slot based on position in the django course array
+function RemoveCourse( slot )
+{
+    Dajaxice.ssu.remove_course( Dajax.process, { slot_id:slot } );
+    Dajaxice.ssu.make_schedules( Dajax.process );
+}
 
 function ge_change() {
     if (this.checked) {
@@ -931,7 +1009,11 @@ function sessionCheck() {
     Dajaxice.ssu.check_session(Dajax.process);
 }
 
-
+// General callback / function to log something
+function log( data )
+{ 
+    console.log( data ); 
+}
 
 
 

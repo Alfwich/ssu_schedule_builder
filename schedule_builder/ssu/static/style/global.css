@@ -17,7 +17,7 @@ Arthur Wuterich
     background-color:#D8D8D8;
     width: 100%;
     height: 100%;
-    min-width:1024px;
+    min-width:1200px;
 }
 
 /* Global Application */
@@ -98,6 +98,17 @@ Arthur Wuterich
     -ms-user-select: none;
     user-select: none;
     cursor: pointer;    
+}
+
+.no_select_np
+{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:default;
 }
 
 #side_window
@@ -211,6 +222,13 @@ Arthur Wuterich
 {
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
+}
+.calendar_number_flare
+{
+    border-bottom: 1px solid #EEE;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    font-size: 80%;
+    color: #777;
 }
 .class_block_wrapper
 {

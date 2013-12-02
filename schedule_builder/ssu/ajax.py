@@ -190,34 +190,44 @@ def filter_schedules( request, filter ):
             
         if not 'end' in filter:
             filter['end'] = "2400"
+            
+        if not 'start' in request.session:
+            request.session['start'] = "0000"
+            
+        if not 'end' in request.session:
+            request.session['end'] = "2400"            
                                 
         # make sure that the start and end time are in the correct format
         filter['start'] = str(filter['start']).zfill(4)
         filter['end'] = str(filter['end']).zfill(4)
-            
-        delete_schedules = []
-        for i, schedule in enumerate(request.session['schedules']):
         
-            remove = False
+        if request.session['start'] != filter['start'] or request.session['end'] != filter['end']:
+                
+            delete_schedules = []
+            for i, schedule in enumerate(request.session['schedules']):
             
-            # Check each instance if there is a conflicting time
-            for instance in schedule:
-                ci = CourseInstance.objects.filter(id=instance)
-                times = ci[0].section_times()
-                for t in times:
-                    if t['start'] < filter['start'] or t['end'] > filter['end']:
-                        remove = True
+                remove = False
+                
+                # Check each instance if there is a conflicting time
+                for instance in schedule:
+                    ci = CourseInstance.objects.filter(id=instance)
+                    times = ci[0].section_times()
+                    for t in times:
+                        if t['start'] < filter['start'] or t['end'] > filter['end']:
+                            remove = True
+                            break
+                    
+                    if remove:
                         break
                 
+                # Add the schedule to be removed if true
                 if remove:
-                    break
+                    delete_schedules.append(i)
             
-            # Add the schedule to be removed if true
-            if remove:
-                delete_schedules.append(i)
-        
-        # Remove the elements that match
-        request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]
+            # Remove the elements that match
+            request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]
+            request.session['start'] = filter['start']
+            request.session['end'] = filter['end']
             
     request.session.modified = True
     return len( request.session['schedules'] )        
