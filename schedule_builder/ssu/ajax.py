@@ -134,53 +134,82 @@ def filter_schedules( request, filter ):
     
     # Filter course instances from the result
     if 'not_instance' in filter and len(filter['not_instance']) > 0:
-        emptySet = set()
-        notSet = set(filter['not_instance'])
-        # This will return the set of schedules that do not contain any of the filtered sections
-        request.session['schedules'] = [x for x in request.session['schedules'] if notSet&set(x)==emptySet]
+        if not 'not_instance' in request.session:
+            request.session['not_instance'] = []
+        
+        # Only execute if there is a difference
+        if request.session['not_instance'] != filter['not_instance']:
+            emptySet = set()
+            notSet = set(filter['not_instance'])
+            # This will return the set of schedules that do not contain any of the filtered sections
+            request.session['schedules'] = [x for x in request.session['schedules'] if notSet&set(x)==emptySet]
+            request.session['not_instance'] = filter['not_instance']
         
     # Filter course instances from the result
     if 'instance' in filter and len(filter['instance']) > 0:
-        emptySet = set()
-        notSet = set(filter['instance'])
-        # This will return the set of schedules that do not contain any of the filtered sections
-        request.session['schedules'] = [x for x in request.session['schedules'] if notSet&set(x)!=emptySet]        
+    
+        if not 'instance' in request.session:
+            request.session['instance'] = []
+            
+        # Only execute if there is a difference    
+        if request.session['instance'] != filter['instance']:    
+            emptySet = set()
+            notSet = set(filter['instance'])
+            # This will return the set of schedules that do not contain any of the filtered sections
+            request.session['schedules'] = [x for x in request.session['schedules'] if notSet&set(x)!=emptySet]
+            request.session['instance'] = filter['instance']            
         
     # Filter course instances from the result
     if 'not_course' in filter and len(filter['not_course']) > 0:
-        delete_schedules = []
-        for i, schedule in enumerate(request.session['schedules']):
-        
-            # Get the courses in the schedule
-            course_ids = []
-            for instance_id in schedule:
-                ci = CourseInstance.objects.filter(id=instance_id)
-                course_ids.append( ci[0].course.id )
+    
+        if not 'not_course' in request.session:
+            request.session['not_course'] = []
             
-            # If the resulting set of course ids does not include all of the ids in the filter remove it
-            if set(filter['not_course'])&set(course_ids)!=set():
-                delete_schedules.append( i )
-        
-        # Remove schedules flagged for deletion
-        request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]
+       # Only execute if there is a difference    
+        if request.session['not_course'] != filter['not_course']:              
+    
+            delete_schedules = []
+            for i, schedule in enumerate(request.session['schedules']):
+            
+                # Get the courses in the schedule
+                course_ids = []
+                for instance_id in schedule:
+                    ci = CourseInstance.objects.filter(id=instance_id)
+                    course_ids.append( ci[0].course.id )
+                
+                # If the resulting set of course ids does not include all of the ids in the filter remove it
+                if set(filter['not_course'])&set(course_ids)!=set():
+                    delete_schedules.append( i )
+            
+            # Remove schedules flagged for deletion
+            request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]
+            request.session['not_course'] = filter['not_course']  
         
     # Filter course instances from the result
     if 'course' in filter and len(filter['course']) > 0:
-        delete_schedules = []
-        for i, schedule in enumerate(request.session['schedules']):
-        
-            # Get the courses in the schedule
-            course_ids = []
-            for instance_id in schedule:
-                ci = CourseInstance.objects.filter(id=instance_id)
-                course_ids.append( ci[0].course.id )
+    
+        if not 'course' in request.session:
+            request.session['course'] = []
             
-            # If the resulting set of course ids does not include all of the ids in the filter remove it
-            if set(filter['course'])&set(course_ids)==set():
-                delete_schedules.append( i )
-        
-        # Remove schedules flagged for deletion
-        request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]        
+       # Only execute if there is a difference    
+        if request.session['course'] != filter['course']:    
+            
+            delete_schedules = []
+            for i, schedule in enumerate(request.session['schedules']):
+            
+                # Get the courses in the schedule
+                course_ids = []
+                for instance_id in schedule:
+                    ci = CourseInstance.objects.filter(id=instance_id)
+                    course_ids.append( ci[0].course.id )
+                
+                # If the resulting set of course ids does not include all of the ids in the filter remove it
+                if set(filter['course'])&set(course_ids)==set():
+                    delete_schedules.append( i )
+            
+            # Remove schedules flagged for deletion
+            request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]        
+            request.session['course'] = filter['course']  
             
     
     # Filter based on starting time and ending time
