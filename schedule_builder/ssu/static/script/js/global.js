@@ -110,7 +110,7 @@ function BindEvents()
 var windows = {
     windows:[],
     current_window:0,
-    sideMenuSize:300,
+    sideMenuSize:200,
     windowAnimationOptions:{ duration: 200, easing: "linear", complete:WindowOpenComplete },
     labelWidth:50,
 }
