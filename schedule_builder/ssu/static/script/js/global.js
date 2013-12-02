@@ -1,13 +1,16 @@
 // Application globals
-var current_window = 0;
-var sideMenuSize = 300;
-var windowAnimationOptions = { duration: 200, easing: "linear", complete:WindowOpenComplete };
-var labelWidth = 50;
 var application = null;
-var windows = [];
 var resizeDelay = false;
 var tags = [];
 var mouse = { x:0, y:0 };
+var filters = {
+    'not_course':[],
+    'not_instance':[],
+    'course':[],
+    'instance':[],
+    'start':'0000',
+    'end':'2400',
+};
 
 ///////////////////////////////////
 ///////////APPLICATION/////////////
@@ -22,16 +25,19 @@ function Init()
     // This weird looking .each statement will add the windows in reverse order
     var i = 1;
     $($(".window").get().reverse()).each(function(){
-        windows.push( this );
+        windows.windows.push( this );
         $(this).attr("id", i++ );
     }); 
     
     SetupWindows();
+    InitSchedule();
     
     // Get the courses already added for this session
     Dajaxice.ssu.get_session_courses( ProcessSessionCourses );
         
 }
+
+// Sets the loading state for the application. During this state buttons will be disabled, and a loading indicator will be displayed
 function SetLoading(state)
 {
     if( state )
@@ -45,40 +51,12 @@ function SetLoading(state)
         $(".disable_on_load").removeAttr("disabled");
     }
 }
-/*
-function SetupAutoCompleteTags( data )
-{
-    // Build auto complete object
-    for( c in data )
-    {
-        var name = data[c].fields.subject + " " + data[c].fields.catalog_no + ": " + data[c].fields.title
-        var value = c;
-        tags.push( { id:c, label:name, } );
-    }
-}
 
-
-// Bind course auto complete 
-function BindAutoComplete( obj )
-{
-    // Bind the auto complete
-    $(obj).autocomplete({
-        source: function(request, response) {
-            var results = $.ui.autocomplete.filter(tags, request.term);
-            response(results.slice(0, 10));
-        },
-        change: function(event,ui){
-        },
-        messages: {
-            noResults: '',
-            results: function() {}
-        },      
-    }); 
-}
-*/
+// Resizes the windows for the current screen
 function ResizeElements()
 {
     SetupWindows();
+    InitSchedule();
 }
 
 // Bind events to objects 
@@ -113,13 +91,14 @@ function BindEvents()
         mouse.x = e.clientX;
         mouse.y = e.clientY;
     });
-        
-    $(".slot").click( function(e){
-        ContextInit( this, context.slotMenu, MenuCallback );
-    });
-    
+            
+    // Schedule Navigation events
     $(".schedule_inputs").children(".next").click( NextSchedule );
     $(".schedule_inputs").children(".prev").click( PrevSchedule );
+    $(".schedule_filter_clear").click( function(e){
+        ResetFilters();
+        CalcSchedules();
+    });
 }
 
 
@@ -127,6 +106,16 @@ function BindEvents()
 ///////////////////////////////////
 /////////////WINDOWS///////////////
 ///////////////////////////////////
+
+var windows = {
+    windows:[],
+    current_window:0,
+    sideMenuSize:200,
+    windowAnimationOptions:{ duration: 200, easing: "linear", complete:WindowOpenComplete },
+    labelWidth:50,
+}
+
+
 // Will open a window
 function ToggleWindow( window_id, canDec )
 {
@@ -139,39 +128,39 @@ function ToggleWindow( window_id, canDec )
     }
     else
     // If this is the current window close the windows
-    if( window_id == current_window && current_window != 0 && !canDec )
+    if( window_id == windows.current_window && windows.current_window != 0 && !canDec )
     {
-        window_id = (++current_window);
+        window_id = (++windows.current_window);
     }
-    current_window = window_id;
+    windows.current_window = window_id;
 
     $(".window").each(function(e){
         var id = $(this).attr("id");
         // If this window is less than the target window it needs to open as well
         if( window_id <= id && window_id != 0 )
         {
-            $(this).animate( { left : ( (windows.length-id)*labelWidth)+sideMenuSize }, windowAnimationOptions );
+            $(this).animate( { left : ( (windows.windows.length-id)*windows.labelWidth)+windows.sideMenuSize }, windows.windowAnimationOptions );
             return;
         }
 
         // Move the window to the left of the screen
-        var xOffset = id*labelWidth;
+        var xOffset = id*windows.labelWidth;
         var screenWidth = $(application).width();
-        $(this).animate({ left: screenWidth-xOffset }, windowAnimationOptions );
+        $(this).animate({ left: screenWidth-xOffset }, windows.windowAnimationOptions );
     });
 
     
     // Show the content on the active window
-    $(".window[id="+current_window+"]").children(".content").show();
+    $(".window[id="+windows.current_window+"]").children(".content").show();
     
     // After the animation is complete hide all the content on each window except for the visible window
-    setTimeout( HideContent, windowAnimationOptions.duration );
+    setTimeout( HideContent, windows.windowAnimationOptions.duration );
 }
 
 // Hides the contents of all windows except the current window
 function HideContent()
 {
-    $(".window[id!="+current_window+"]").children(".content").hide();
+    $(".window[id!="+windows.current_window+"]").children(".content").hide();
 }
 
 // Sets the windows up and closes all of them
@@ -180,21 +169,22 @@ function SetupWindows()
     // Set the width of each panel
     $(".window").each(function(){
         var windowId = $(this).attr("id");
-        $(this).css( { "z-index":(windows.length-windowId), "width":( ($(application).width()-sideMenuSize) ) - 50 } );
-		$(this).children(".content").css( { left:100, top:50, "width": ($(application).width()-sideMenuSize) - 200, "height":$(application).height() } );
+        $(this).css( { "z-index":(windows.windows.length-windowId), "width":( ($(application).width()-windows.sideMenuSize) ) - 50 } );
+		$(this).children(".content").css( { left:100, top:50, "width": ($(application).width()-windows.sideMenuSize) - 200, "height":$(application).height() } );
     });
     
     // Close all of the windows
     CloseAllContextMenus();
-    var oldDuration = windowAnimationOptions.duration;
-    windowAnimationOptions.duration = 0;
-    ToggleWindow( current_window, true );   
-    windowAnimationOptions.duration = oldDuration;
+    var oldDuration = windows.windowAnimationOptions.duration;
+    windows.windowAnimationOptions.duration = 0;
+    ToggleWindow( windows.current_window, true );   
+    windows.windowAnimationOptions.duration = oldDuration;
 }
 
+// Function that is called once a window is opened
 function WindowOpenComplete()
 {
-    if( current_window == 1 )
+    if( windows.current_window == 1 )
     {
         if( schedule.maxSchedules != 0 && schedule.scheduleLimit.min == 0 )
         {
@@ -203,8 +193,6 @@ function WindowOpenComplete()
     }
 }
 
-
-
 ///////////////////////////////////
 //////////CONTEXT MENUS////////////
 ///////////////////////////////////
@@ -212,77 +200,90 @@ var context =
 {
 	contextMenuAnimation:{ duration: 100 },
 	depth:0,
-	menuOffset:{ "x": 140, "y": 0 },
-    classBlockMenu:
+	menuOffset:{ "x": 120, "y": 0 },
+    target:null,
+    // Menus
+    dayBlockMenu:
     {
-        "Remove Class":1,
-        "Remove Time":
-        {
-            "All at this time":"Remove",
-            "All After this time":"Remove",
+        "Don't include":{
+            "This Section":1,
+            "This Course":2,
+        },             
+        "Must include":{
+            "This Section":3,
+            "This Course":4,
+        },          
+        "No Classes":{
+            "Earlier Than This Time":5,
+            "Later Than This Time":6,
         },
-        "Remove Class and Time":
-            {
-                "All at this time":"Remove",
-                "All After this time":"Remove",
-            },            
 	},
-    courseItem:
+    courseItemMenu:
     {
         "Remove":1,
     },
-    target:null,
 };
-function SearchSelection( node, callback )
+
+// Context Menu Callbacks
+
+// Will process filter requests from the context menu
+function DayBlockContextCallback(option)
 {
-    var menu_selection = $("<li>",{
-        class:"context_item",
-        key:node,
-    });
-    
-    // Search box
-    var search_input = $("<input>",{
-        type:"text",
-        class:"context_item context_search",
-        placeholder:"Search",
-    });
-    
-    BindAutoComplete( search_input );
-    
-    menu_selection.append( search_input );  
-    
-    // Add Button
-    var search_button = $("<input>",{
-        type:"button",
-        value:"Add Class",
-        class:"context_item context_button",
-    });
-    
-    $(search_button).click(function(e){
-        var searchValue = $(search_input).val();
+    switch( option )
+    {
+        case 1:
+            var dontInclude = parseInt($(context.target).attr("instance_id"));
+            filters.not_instance.push( dontInclude );
+        break;
         
-        if( searchValue.length > 0 )
-        {
-            callback( searchValue );
-            CloseAllContextMenus();
-        }
-    });
+        case 2:
+            var dontInclude = parseInt($(context.target).attr("course_id"));
+            filters.not_course.push( dontInclude );
+        break;        
+        
+        case 3:
+            var mustInclude = parseInt($(context.target).attr("instance_id"));
+            filters.instance.push( mustInclude );
+        break;           
+        
+        case 4:
+            var mustInclude = parseInt($(context.target).attr("course_id"));
+            filters.course.push( mustInclude );
+        break;        
+        
+        case 5:
+            var start = $(context.target).attr("start_time");
+            filters.start = start;
+        break;
+
+        case 6:
+            var end = $(context.target).attr("end_time");
+            filters.end = end;
+        break;        
+    }
     
-    menu_selection.append( search_button ); 
-    
-    
-    return menu_selection;
-}
-function MenuCallback( value, menu, key )
-{
-    var newClass = $("<li>",{
-        text:value,
-    });
-    
-    $("#classes").append( newClass );
+    // Update the schedules based on the filters
+    FilterSchedules();
 }
 
-// Inits the context menu
+// Context menu callback for the remove course context menu
+function RemoveCourseContextCallback(value)
+{
+    switch( value )
+    {
+        case 1:
+            var id = $(context.target).attr("slot_id");
+            Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
+            cur_slot--;
+        break;
+    }
+}
+
+// Inits a context menu at a target position. This function should be used to start a context menu
+// to preserve only one open menu and the target structure of the context system
+// target: The location to create the menu
+// menu: object that represents the menu structure
+// callback: function that will be called once a selection has been made from the menu
 function ContextInit( target, menu, callback )
 {
     // Close all other context menus
@@ -303,6 +304,7 @@ function ContextInit( target, menu, callback )
     ContextMenu( target, menu, callback );
 }
 
+// Will close all of the open context menus
 function CloseAllContextMenus()
 {
     context.depth = 0;
@@ -315,6 +317,10 @@ function CloseAllContextMenus()
     });
 }
 
+// Creates a context menu at a target position
+// target: The location to create the menu
+// menu: object that represents the menu structure
+// callback: function that will be called once a selection has been made from the menu
 function ContextMenu( target, menu, callback )
 {
     // Create the window
@@ -413,17 +419,15 @@ function ContextMenu( target, menu, callback )
         targetOffset = $(target).offset();
         $(window).css( { "left":targetOffset.left+context.menuOffset.x,"top":targetOffset.top } );
     }
+    
+    // Layer the window(s) above everything
+    $(window).css( "z-index", 5 );
         
     // Add the window to the screen
     $(window).css( { opacity:0, width:0+"px" } );
     $(window).animate( { opacity:1, width:170+"px" }, context.contextMenuAnimation );
     $("#application").append( window );
     context.depth++;
-}
-
-function ClassBlockCallback( value )
-{
-    console.log( value );
 }
 
 ///////////////////////////////////
@@ -447,20 +451,72 @@ var schedule = {
         "ARR":"null",        
     },
 };
+
+// Will generate the visual elements of the schedule
+function InitSchedule()
+{
+    // Calculate the size of the new block
+    var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
+    var tagWidth = ($(".calendar").width() * 0.70);
+    
+    // Remove all numbers
+    $(".calendar_number_flare").remove();
+    
+    for(var i = 0; i < 15; i++ )
+    {
+        var tagText = "";
+        if( (i+8) >= 12 )
+        {
+            if( (i+8) == 12 )
+            {
+                tagText = "12PM";
+            }
+            else
+            {
+                tagText = (i-4)+"PM";
+            }
+        }
+        else
+        {
+            tagText = (i+8)+"AM";
+        }
+        var tag = $("<div>",{
+            text:tagText,
+            class:"calendar_number_flare no_select_np",
+        });
+        var offset = $(".week_day.sunday").offset();
+        var top = (i*heightMultiple)+117;
+        $(tag).css({ 
+            "position":"absolute",
+            "top":top,
+            "left":"3px",
+            "width":tagWidth,
+            "height":heightMultiple,
+        });
+        
+        $(".week_day.sunday").append( tag );
+    }
+}
+
+// Will lock the schedule while new data is being loaded
 function ScheduleLock()
 {
     SetLoading( true );
     schedule.lock = true;
 }
 
+// Unlocks the schedule after data has been loaded
 function ScheduleUnlock()
 {
     SetLoading( false );
     schedule.lock = false;
 }
+
+// Loads the corses stored in the session array from django
 function ProcessSessionCourses(data)
 {
     cur_slot = data.length;
+    
     // If there are courses returned get schedule data
     if( data.length > 0 )
     {
@@ -481,12 +537,15 @@ function ProcessSessionCourses(data)
     BindCourseClick();
 }
 
+// Removed all of the blocks from the schedule
 function ClearSchedule()
 {
     $(".week_day .entries").children().remove();
     $(".schedule_details").children().remove();
+    $(".class_block").remove();
 }
 
+// Pads a time string to always contain at least 4 characters
 function PadTimeString( time )
 {
     var padding = "";
@@ -498,19 +557,32 @@ function PadTimeString( time )
     return padding + time;
 }
 
+// Returns an object with the int value of the hours and minutes from a time string
 function GetHourMinutes( time )
 {
-    var hours = parseInt( time.substring( 0, 2 ) );
+    var hours = 0;
+    // Workaround for firefox / safari not considering "09" = 9
+    if( time.charAt(0) == '0' )
+    {
+        hours = parseInt( time.substring( 1, 2 ) );
+    }
+    else
+    {
+        hours = parseInt( time.substring( 0, 2 ) );
+    }
+    
     var minutes = parseInt( time.substring( 2, 4 ) );
     
     return { "HH": hours, "MM": minutes }
 }
 
+// Returns the difference in military times as a float
 function DifferenceMilitary( start, end )
 {
     return MilitaryFloatValue( end )  - MilitaryFloatValue( start );
 }
 
+// Returns the float value of a military time
 function MilitaryFloatValue( time )
 {
     time = PadTimeString( time );
@@ -518,6 +590,7 @@ function MilitaryFloatValue( time )
     return timeComps.HH + ( timeComps.MM / 60 )
 }
 
+// Will load a schedule from the cached schedules
 function LoadSchedule( schedule_id )
 {
     ClearSchedule();
@@ -539,13 +612,16 @@ function LoadSchedule( schedule_id )
         }
     }
     
-    // Check to see if the current schedule is adjacent to an edge entry
+    // Check to see if we need to load more schedules
     if( ( schedule_id <= 0 && schedule.scheduleLimit.min > 0 ) || ( schedule.scheduleLimit.max < schedule.maxSchedules && schedule_id >= ( (schedule.schedules.length-1) ) ) )
     {
-        var oldPos = schedule.currentSchedule+schedule.scheduleLimit.min;
-    
-        schedule.scheduleLimit.min = oldPos-schedule.scheduleStep;
-        schedule.scheduleLimit.max = oldPos+schedule.scheduleStep;
+        // Calculate the position on the possible schedules
+        var realPosition = schedule.currentSchedule+schedule.scheduleLimit.min;
+        
+        // Get the schedules +/- the step size
+        schedule.scheduleLimit.min = realPosition-schedule.scheduleStep;
+        schedule.scheduleLimit.max = realPosition+schedule.scheduleStep;
+        
         // Check bounds for the limits
         if( schedule.scheduleLimit.min < 0 )
         {
@@ -557,12 +633,15 @@ function LoadSchedule( schedule_id )
             schedule.scheduleLimit.max = schedule.maxSchedules;
         }        
         
-        schedule.currentSchedule = oldPos - schedule.scheduleLimit.min;
+        // Set the new position of the schedule position
+        schedule.currentSchedule = realPosition - schedule.scheduleLimit.min;
         
+        // Get 'em
         GetScheduleData( schedule.scheduleLimit.min, schedule.scheduleLimit.max );        
     }
 }
 
+// Schedule next button event function
 function NextSchedule()
 {
     if( schedule.lock )
@@ -579,6 +658,7 @@ function NextSchedule()
     LoadSchedule( schedule.currentSchedule ); 
 }
 
+// Schedule prev button event function
 function PrevSchedule()
 {
     if( schedule.lock )
@@ -595,112 +675,164 @@ function PrevSchedule()
     LoadSchedule( schedule.currentSchedule );   
 }
 
+// Will create a day block for a schedule time
 function AddDayBlock( course, instance )
 {
+    // Get the correct day to add block to
     var entries = $("."+schedule.abbrToDay[instance.day]+".week_day").children(".entries");
+    
+    // Length and start time of the block
     var lengthValue = DifferenceMilitary( instance.start, instance.end );
     var startValue = MilitaryFloatValue( instance.start )-8;
+        
+    // Wrapper for the block
     var divWrapper = $("<div>",{
         class:"class_block_wrapper",
     });
         
+    // Create the block
     var block = $("<div>",{
         class:"class_block no_select",
-        course_id:course.id
+        course_id:course.id,
+        instance_id:course.instance_id,
+        start_time:instance.start,
+        end_time:instance.end,
     });
     
+    // Give the block an click function for the context menus
     $(block).click( function(e){
-        ContextInit( this, context.classBlockMenu, courseCallback );
+        ContextInit( this, context.dayBlockMenu, DayBlockContextCallback );
     }); 
     
-    var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
-    var blockWidth = ($(".calendar").width() * 0.13)-2;
+    // On Hover event to change z-index of elements
+    $(block).mouseover( function(e){
+        
+        // Push all other day blocks to the bottom
+        $(".class_block").css( "z-index", "auto" );
+            
+        // This is the top
+        $(this).css( "z-index", 1 );
+    });     
     
+    // Calculate the size of the new block
+    var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
+    var blockWidth = ($(".calendar").width() * 0.10)-2;
+    
+    // Position and size the new block
     $(block).css( { height: (lengthValue*heightMultiple)+"px", top: startValue*heightMultiple, width:(blockWidth)+"px" } );
     $(block).text( course.subject );
     
     $(divWrapper).append( block );
     $(entries).append( divWrapper );
     
+    // Add a details row
+    // First check if there is already a row with the same instance id, if so add
+    // the time to the end of that row rather than make a new row
+    var row = $(".schedule_details_row[instance_id="+course.instance_id+"]");
+    
+    // If there is a row already add to it and shortcut out
+    if( row.length > 0 )
+    {
+        $(row[0]).text( $(row[0]).text() + ", " + instance.day + ", " + instance.start + " - " + instance.end );
+        return;
+    }
+    
     var details = $("<div>",{
         text:course.subject + ": " + instance.day + ", " + instance.start + " - " + instance.end,
         class:"schedule_details_row no_select",
-        course_id:course.id,        
+        course_id:course.id,
+        instance_id:course.instance_id,
+        start_time:instance.start,
+        end_time:instance.end,        
     });
     
+    // Give the details row the same context menu as the block
     $(details).click( function(e){
-        ContextInit( this, context.classBlockMenu, courseCallback );
+        ContextInit( this, context.dayBlockMenu, DayBlockContextCallback );
     });     
     
     // Add details to schedule details
     $(".schedule_details").append( details );
 }
 
-/*
-function RenderSchedule( schedule )
-{
-    Dajaxice.ssu.render_schedule( Dajax.process, { width:($(".calendar").width() * 0.14)-1, height:( $(".calendar").height() - 20 ) / 16, schedule_id:schedule } );
-}
-
-function SetScheduleEvents( data )
-{
-    $(".class_block").click(function(e){
-        ContextInit( this, context.classBlockMenu, ClassBlockCallback );
-    });
-}
-*/
-
-function AddCourse( course_id )
-{
-    Dajaxice.ssu.add_course( Dajax.process, course_id );
-}
-
+// Calculates the schedules on the django end
 function CalcSchedules()
 {
+    // Lock the schedule
+    ScheduleLock();
+    
+    // Reset the filters
+    ResetFilters();
+    
     // Process the schedules on the python end
-    Dajaxice.ssu.make_schedules( SetMaxNumberOfSchedules );
+    Dajaxice.ssu.make_schedules( MakeSchedulesCallback );
 }
 
-function RemoveCourse( slot )
+// Callback for the make schedules function. This will return the number of schedules that can be loaded
+// and will init the schedule browser
+function MakeSchedulesCallback( max )
 {
-    Dajaxice.ssu.remove_course( Dajax.process, { slot_id:slot } );
-    Dajaxice.ssu.make_schedules( Dajax.process );
-}
-
-// Callback for django to set the total number of schedules
-function SetMaxNumberOfSchedules( data )
-{
-    schedule.maxSchedules = data;
+    schedule.maxSchedules = max;
+    
+    // Set the starting limits
     schedule.scheduleLimit.min = 0;
     schedule.scheduleLimit.max = schedule.scheduleStep*2;
+    
+    // Load the schedules in that range
     GetScheduleData( schedule.scheduleLimit.min, schedule.scheduleLimit.max );
 }
 
+// Will load the requested schedule data
 function GetScheduleData( start, end )
 {
     ScheduleLock();
-    Dajaxice.ssu.get_schedules( ScheduleData, { start:start, end:end } );
+    Dajaxice.ssu.get_schedules( ScheduleDataCallback, { start:start, end:end } );
 }
 
-function ScheduleData( data )
+// Callback for loading schedule data
+function ScheduleDataCallback( data )
 {
     ScheduleUnlock();
     if( data instanceof Array )
     {
         schedule.schedules = data;
     }
+    else
+    {
+        schedule.schedules = [];
+    }
+    
+    // Load the first schedule
+    schedule.currentSchedule = 0;
+    LoadSchedule( schedule.currentSchedule );
+    
     SetScheduleLabel();
-    console.log( "done" );    
+    log( "Done Loading Schedule Data" );    
 }
 
-function ToConsole( data )
+// Will filter the current schedules based on 
+function FilterSchedules()
+{  
+    ScheduleLock();
+    filter = { "filter":filters };
+    Dajaxice.ssu.filter_schedules( MakeSchedulesCallback, filter );
+}
+
+// Will reset the filter object
+function ResetFilters()
 {
-    console.log( data );
+    filters.not_course = [];
+    filters.not_instance = [];
+    filters.course = [];
+    filters.instance = [];
+    filters.start = "0000";
+    filters.end = "2400";
 }
 
+// Sets the labels for the schedules
 function SetScheduleLabel()
 {
-    if( schedule.schedules instanceof Array && schedule.schedules[0].length > 0 )
+    if( schedule.schedules[0] instanceof Array && schedule.schedules[0].length > 0 )
     {
        $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
     }
@@ -710,8 +842,18 @@ function SetScheduleLabel()
     }
 }
 
+///////////////////////////////////
+////////COURSE SEARCHING///////////
+///////////////////////////////////
 var ge_selected = {};
 var cur_slot = 0;
+
+// Removes a course slot based on position in the django course array
+function RemoveCourse( slot )
+{
+    Dajaxice.ssu.remove_course( Dajax.process, { slot_id:slot } );
+    Dajaxice.ssu.make_schedules( Dajax.process );
+}
 
 function ge_change() {
     if (this.checked) {
@@ -766,24 +908,7 @@ function add_course(id) {
     cur_slot++;
 }
 
-function ge_callback() {
-    boxes = $('.ge_result.list input[type=checkbox]');
-    boxes.change(ge_change);
-    for (var i = 0; i < boxes.length; ++i) {
-        if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
-    }
-}
-
-function courseCallback(value)
-{
-    if( value == 1 )
-    {
-        var id = $(context.target).attr("slot_id");
-        Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
-        cur_slot--;
-    }
-}
-
+// Binds listeners to the course list objects
 function BindCourseClick()
 {
     // Remove old click listeners to be safe
@@ -791,10 +916,15 @@ function BindCourseClick()
     
     // Add new listeners
     $("#added_courses").children("p").click(function(e){
-        ContextInit( this, context.courseItem, courseCallback );
+        ContextInit( this, context.courseItemMenu, RemoveCourseContextCallback );
     });
 }
 
+///////////////////////////////////
+/////////DJANGO CALLBACKS//////////
+///////////////////////////////////
+
+// Callback for adding a course from django
 function AddCourseCallback()
 {
     // Get the new schedules
@@ -804,6 +934,7 @@ function AddCourseCallback()
     BindCourseClick();
 }
 
+// Callback for deleting a course from django
 function DeleteCallback()
 {
     schedule.currentSchedule = 0;
@@ -811,7 +942,17 @@ function DeleteCallback()
     CalcSchedules();
 }
 
-// Showtime!
+function ge_callback() {
+    boxes = $('.ge_result.list input[type=checkbox]');
+    boxes.change(ge_change);
+    for (var i = 0; i < boxes.length; ++i) {
+        if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
+    }
+}
+
+///////////////////////////////////
+//////////PROGRAM INIT/////////////
+///////////////////////////////////
 $(window).load( function(e){
 
 	Init();
@@ -861,7 +1002,31 @@ $(window).load( function(e){
     hide_levels_above(1);
 });
 
+
+/////////////////////////////////
+///////////TESTING///////////////
+/////////////////////////////////
 function sessionCheck() {
     Dajaxice.ssu.check_session(Dajax.process);
 }
+
+// General callback / function to log something
+function log( data )
+{ 
+    console.log( data ); 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
