@@ -271,14 +271,41 @@ def make_schedules( request ):
     if not 'schedules' in request.session:
         request.session['schedules'] = []   
 
-    request.session['schedules'] = list( product( *request.session['instances'] ) )
+    schedules = list( product( *request.session['instances'] ) )
 
-    cur_schedule = [[59, 0]] * 168
-    
-    #conflict resolution
+    request.session['schedules'] =  [x for x in schedules if valid_schedule(x)]
 
     request.session.modified = True
     return len( request.session['schedules'] )
+
+def valid_schedule( schedule ):
+
+    day_code = { 
+            "M":0,
+            "T":1,
+            "W":2,
+            "TH":3,
+            "F":4,
+            "S":5,
+            }
+
+    instances = [CourseInstance.objects.get(id=x) for x in schedule]
+    time_slots = [0] * 2016
+
+    for instance in instances:
+        for time in instance.section_times():
+            if time['start']:
+                start = day_code[time['day']] * 288 + int(time['start'][:2]) * 12 + int(time['start'][2:]) / 5
+                end = day_code[time['day']] * 288 + int(time['end'][:2]) * 12 + int(time['end'][2:]) / 5
+
+                print range(start,end)
+                for i in range(start, end):
+                    if time_slots[i] == 1:
+                        return False
+                    else:
+                        time_slots[i] = 1
+    return True
+
 
 @dajaxice_register
 def get_schedules( request, start, end ):
