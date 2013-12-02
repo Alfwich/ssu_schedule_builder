@@ -730,7 +730,7 @@ function ge_change() {
     }
 
     if ( $('#added_courses p').length == cur_slot) {
-        $('#added_courses').append('<p slot_id="' + cur_slot + '">' + out + "</p>" + '<div class="option" onclick="add_group();">Add Group</div>');
+        $('#added_courses').append('<p slot_id="' + cur_slot + '">' + out + "</p>" + '<div class="option" onclick="add_group(this);">Add Group</div>');
     }
     else {
         $('#added_courses p')[cur_slot].innerHTML = out;
@@ -742,7 +742,7 @@ function hide_levels_above(level) {
     while ( (level_to_hide = $('#level' + ++level)).length != 0 ) level_to_hide.hide();
 }
 
-function add_group() {
+function add_group(e) {
     var ids = [];
 
     for (var key in ge_selected) {
@@ -751,7 +751,8 @@ function add_group() {
         }
     }
 
-    hide_levels_above(1)
+    $(e).hide();
+    hide_levels_above(1);
     Dajaxice.ssu.add_course(Dajax.process, { course_id: ids, slot_id: cur_slot });
     ge_selected = {};
     cur_slot++;

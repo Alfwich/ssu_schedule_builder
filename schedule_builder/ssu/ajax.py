@@ -133,6 +133,9 @@ def make_schedules( request ):
         request.session['schedules'] = []   
 
     request.session['schedules'] = list( product( *request.session['instances'] ) )
+
+    cur_schedule = [[59, 0]] * 168
+
     request.session.modified = True
   
     return len( request.session['schedules'] )
