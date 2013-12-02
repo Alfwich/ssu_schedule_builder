@@ -1,10 +1,5 @@
 // Application globals
-var current_window = 0;
-var sideMenuSize = 300;
-var windowAnimationOptions = { duration: 200, easing: "linear", complete:WindowOpenComplete };
-var labelWidth = 50;
 var application = null;
-var windows = [];
 var resizeDelay = false;
 var tags = [];
 var mouse = { x:0, y:0 };
@@ -30,7 +25,7 @@ function Init()
     // This weird looking .each statement will add the windows in reverse order
     var i = 1;
     $($(".window").get().reverse()).each(function(){
-        windows.push( this );
+        windows.windows.push( this );
         $(this).attr("id", i++ );
     }); 
     
@@ -109,6 +104,16 @@ function BindEvents()
 ///////////////////////////////////
 /////////////WINDOWS///////////////
 ///////////////////////////////////
+
+var windows = {
+    windows:[],
+    current_window:0,
+    sideMenuSize:300,
+    windowAnimationOptions:{ duration: 200, easing: "linear", complete:WindowOpenComplete },
+    labelWidth:50,
+}
+
+
 // Will open a window
 function ToggleWindow( window_id, canDec )
 {
@@ -121,39 +126,39 @@ function ToggleWindow( window_id, canDec )
     }
     else
     // If this is the current window close the windows
-    if( window_id == current_window && current_window != 0 && !canDec )
+    if( window_id == windows.current_window && windows.current_window != 0 && !canDec )
     {
-        window_id = (++current_window);
+        window_id = (++windows.current_window);
     }
-    current_window = window_id;
+    windows.current_window = window_id;
 
     $(".window").each(function(e){
         var id = $(this).attr("id");
         // If this window is less than the target window it needs to open as well
         if( window_id <= id && window_id != 0 )
         {
-            $(this).animate( { left : ( (windows.length-id)*labelWidth)+sideMenuSize }, windowAnimationOptions );
+            $(this).animate( { left : ( (windows.windows.length-id)*windows.labelWidth)+windows.sideMenuSize }, windows.windowAnimationOptions );
             return;
         }
 
         // Move the window to the left of the screen
-        var xOffset = id*labelWidth;
+        var xOffset = id*windows.labelWidth;
         var screenWidth = $(application).width();
-        $(this).animate({ left: screenWidth-xOffset }, windowAnimationOptions );
+        $(this).animate({ left: screenWidth-xOffset }, windows.windowAnimationOptions );
     });
 
     
     // Show the content on the active window
-    $(".window[id="+current_window+"]").children(".content").show();
+    $(".window[id="+windows.current_window+"]").children(".content").show();
     
     // After the animation is complete hide all the content on each window except for the visible window
-    setTimeout( HideContent, windowAnimationOptions.duration );
+    setTimeout( HideContent, windows.windowAnimationOptions.duration );
 }
 
 // Hides the contents of all windows except the current window
 function HideContent()
 {
-    $(".window[id!="+current_window+"]").children(".content").hide();
+    $(".window[id!="+windows.current_window+"]").children(".content").hide();
 }
 
 // Sets the windows up and closes all of them
@@ -162,22 +167,22 @@ function SetupWindows()
     // Set the width of each panel
     $(".window").each(function(){
         var windowId = $(this).attr("id");
-        $(this).css( { "z-index":(windows.length-windowId), "width":( ($(application).width()-sideMenuSize) ) - 50 } );
-		$(this).children(".content").css( { left:100, top:50, "width": ($(application).width()-sideMenuSize) - 200, "height":$(application).height() } );
+        $(this).css( { "z-index":(windows.windows.length-windowId), "width":( ($(application).width()-windows.sideMenuSize) ) - 50 } );
+		$(this).children(".content").css( { left:100, top:50, "width": ($(application).width()-windows.sideMenuSize) - 200, "height":$(application).height() } );
     });
     
     // Close all of the windows
     CloseAllContextMenus();
-    var oldDuration = windowAnimationOptions.duration;
-    windowAnimationOptions.duration = 0;
-    ToggleWindow( current_window, true );   
-    windowAnimationOptions.duration = oldDuration;
+    var oldDuration = windows.windowAnimationOptions.duration;
+    windows.windowAnimationOptions.duration = 0;
+    ToggleWindow( windows.current_window, true );   
+    windows.windowAnimationOptions.duration = oldDuration;
 }
 
 // Function that is called once a window is opened
 function WindowOpenComplete()
 {
-    if( current_window == 1 )
+    if( windows.current_window == 1 )
     {
         if( schedule.maxSchedules != 0 && schedule.scheduleLimit.min == 0 )
         {
@@ -201,6 +206,8 @@ var context =
 	contextMenuAnimation:{ duration: 100 },
 	depth:0,
 	menuOffset:{ "x": 120, "y": 0 },
+    target:null,
+    // Menus
     dayBlockMenu:
     {
         "Don't include":{
@@ -216,15 +223,56 @@ var context =
             "Later Than This Time":6,
         },
 	},
-    courseItem:
+    courseItemMenu:
     {
         "Remove":1,
     },
-    target:null,
 };
 
+// Context Menu Callbacks
+
+// Will process filter requests from the context menu
+function DayBlockContextCallback(option)
+{
+    switch( option )
+    {
+        case 1:
+            var dontInclude = parseInt($(context.target).attr("instance_id"));
+            filters.not_instance.push( dontInclude );
+        break;
+        
+        case 2:
+            var dontInclude = parseInt($(context.target).attr("course_id"));
+            filters.not_course.push( dontInclude );
+        break;        
+        
+        case 3:
+            var mustInclude = parseInt($(context.target).attr("instance_id"));
+            filters.instance.push( mustInclude );
+        break;           
+        
+        case 4:
+            var mustInclude = parseInt($(context.target).attr("course_id"));
+            filters.course.push( mustInclude );
+        break;        
+        
+        case 5:
+            var start = $(context.target).attr("start_time");
+            filters.start = start;
+        break;
+
+        case 6:
+            var end = $(context.target).attr("end_time");
+            filters.end = end;
+        break;        
+    }
+    
+    // Update the schedules based on the filters
+    FilterSchedules();
+}
+
 // Context menu callback for the remove course context menu
-function RemoveCourseCallback(value)
+function RemoveCourseContextCallback(value)
 {
     switch( value )
     {
@@ -235,17 +283,6 @@ function RemoveCourseCallback(value)
         break;
     }
 }
-
-/*
-function MenuCallback( value, menu, key )
-{
-    var newClass = $("<li>",{
-        text:value,
-    });
-    
-    $("#classes").append( newClass );
-}
-*/
 
 // Inits a context menu at a target position. This function should be used to start a context menu
 // to preserve only one open menu and the target structure of the context system
@@ -430,6 +467,8 @@ function ScheduleUnlock()
     SetLoading( false );
     schedule.lock = false;
 }
+
+// Loads the corses stored in the session array from django
 function ProcessSessionCourses(data)
 {
     cur_slot = data.length;
@@ -519,13 +558,16 @@ function LoadSchedule( schedule_id )
         }
     }
     
-    // Check to see if the current schedule is adjacent to an edge entry
+    // Check to see if we need to load more schedules
     if( ( schedule_id <= 0 && schedule.scheduleLimit.min > 0 ) || ( schedule.scheduleLimit.max < schedule.maxSchedules && schedule_id >= ( (schedule.schedules.length-1) ) ) )
     {
-        var oldPos = schedule.currentSchedule+schedule.scheduleLimit.min;
-    
-        schedule.scheduleLimit.min = oldPos-schedule.scheduleStep;
-        schedule.scheduleLimit.max = oldPos+schedule.scheduleStep;
+        // Calculate the position on the possible schedules
+        var realPosition = schedule.currentSchedule+schedule.scheduleLimit.min;
+        
+        // Get the schedules +/- the step size
+        schedule.scheduleLimit.min = realPosition-schedule.scheduleStep;
+        schedule.scheduleLimit.max = realPosition+schedule.scheduleStep;
+        
         // Check bounds for the limits
         if( schedule.scheduleLimit.min < 0 )
         {
@@ -537,8 +579,10 @@ function LoadSchedule( schedule_id )
             schedule.scheduleLimit.max = schedule.maxSchedules;
         }        
         
-        schedule.currentSchedule = oldPos - schedule.scheduleLimit.min;
+        // Set the new position of the schedule position
+        schedule.currentSchedule = realPosition - schedule.scheduleLimit.min;
         
+        // Get 'em
         GetScheduleData( schedule.scheduleLimit.min, schedule.scheduleLimit.max );        
     }
 }
@@ -603,7 +647,7 @@ function AddDayBlock( course, instance )
     
     // Give the block an click function for the context menus
     $(block).click( function(e){
-        ContextInit( this, context.dayBlockMenu, DayBlockCallback );
+        ContextInit( this, context.dayBlockMenu, DayBlockContextCallback );
     }); 
     
     // Calculate the size of the new block
@@ -629,59 +673,12 @@ function AddDayBlock( course, instance )
     
     // Give the details row the same context menu as the block
     $(details).click( function(e){
-        ContextInit( this, context.dayBlockMenu, DayBlockCallback );
+        ContextInit( this, context.dayBlockMenu, DayBlockContextCallback );
     });     
     
     // Add details to schedule details
     $(".schedule_details").append( details );
 }
-
-// Will process filter requests from the context menu
-function DayBlockCallback(value)
-{
-    switch( value )
-    {
-        case 1:
-            var dontInclude = parseInt($(context.target).attr("instance_id"));
-            filters.not_instance.push( dontInclude );
-        break;
-        
-        case 2:
-            var dontInclude = parseInt($(context.target).attr("course_id"));
-            filters.not_course.push( dontInclude );
-        break;        
-        
-        case 3:
-            var mustInclude = parseInt($(context.target).attr("instance_id"));
-            filters.instance.push( mustInclude );
-        break;           
-        
-        case 4:
-            var mustInclude = parseInt($(context.target).attr("course_id"));
-            filters.course.push( mustInclude );
-        break;        
-        
-        case 5:
-            var start = $(context.target).attr("start_time");
-            filters.start = start;
-        break;
-
-        case 6:
-            var end = $(context.target).attr("end_time");
-            filters.end = end;
-        break;        
-    }
-    
-    // Update the schedules based on the filters
-    FilterSchedules();
-}
-
-/*
-function AddCourse( course_id )
-{
-    Dajaxice.ssu.add_course( Dajax.process, course_id );
-}
-*/
 
 // Calculates the schedules on the django end
 function CalcSchedules()
@@ -773,6 +770,10 @@ function SetScheduleLabel()
     }
 }
 
+///////////////////////////////////
+////////COURSE SEARCHING///////////
+///////////////////////////////////
+
 var ge_selected = {};
 var cur_slot = 0;
 
@@ -828,14 +829,6 @@ function add_course(id) {
     cur_slot++;
 }
 
-function ge_callback() {
-    boxes = $('.ge_result.list input[type=checkbox]');
-    boxes.change(ge_change);
-    for (var i = 0; i < boxes.length; ++i) {
-        if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
-    }
-}
-
 // Binds listeners to the course list objects
 function BindCourseClick()
 {
@@ -844,9 +837,13 @@ function BindCourseClick()
     
     // Add new listeners
     $("#added_courses").children("p").click(function(e){
-        ContextInit( this, context.courseItem, RemoveCourseCallback );
+        ContextInit( this, context.courseItemMenu, RemoveCourseContextCallback );
     });
 }
+
+///////////////////////////////////
+/////////DJANGO CALLBACKS//////////
+///////////////////////////////////
 
 // Callback for adding a course from django
 function AddCourseCallback()
@@ -866,7 +863,17 @@ function DeleteCallback()
     CalcSchedules();
 }
 
-// Showtime!
+function ge_callback() {
+    boxes = $('.ge_result.list input[type=checkbox]');
+    boxes.change(ge_change);
+    for (var i = 0; i < boxes.length; ++i) {
+        if ( ge_selected[boxes[i].value] ) boxes[i].checked = true;
+    }
+}
+
+///////////////////////////////////
+//////////PROGRAM INIT/////////////
+///////////////////////////////////
 $(window).load( function(e){
 
 	Init();
@@ -916,7 +923,27 @@ $(window).load( function(e){
     hide_levels_above(1);
 });
 
+
+/////////////////////////////////
+///////////TESTING///////////////
+/////////////////////////////////
 function sessionCheck() {
     Dajaxice.ssu.check_session(Dajax.process);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
