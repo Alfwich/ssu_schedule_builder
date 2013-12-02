@@ -834,7 +834,7 @@ function SetScheduleLabel()
 {
     if( schedule.schedules[0] instanceof Array && schedule.schedules[0].length > 0 )
     {
-       $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
+       $(".schedule_label").text( "Schedules ("+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
     }
     else
     {

@@ -298,7 +298,6 @@ def valid_schedule( schedule ):
                 start = day_code[time['day']] * 288 + int(time['start'][:2]) * 12 + int(time['start'][2:]) / 5
                 end = day_code[time['day']] * 288 + int(time['end'][:2]) * 12 + int(time['end'][2:]) / 5
 
-                print range(start,end)
                 for i in range(start, end):
                     if time_slots[i] == 1:
                         return False
