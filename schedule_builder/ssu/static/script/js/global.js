@@ -8,6 +8,14 @@ var windows = [];
 var resizeDelay = false;
 var tags = [];
 var mouse = { x:0, y:0 };
+var filters = {
+    'not_course':[],
+    'not_instance':[],
+    'course':[],
+    'instance':[],
+    'start':'0000',
+    'end':'2400',
+};
 
 ///////////////////////////////////
 ///////////APPLICATION/////////////
@@ -32,6 +40,8 @@ function Init()
     Dajaxice.ssu.get_session_courses( ProcessSessionCourses );
         
 }
+
+// Sets the loading state for the application. During this state buttons will be disabled, and a loading indicator will be displayed
 function SetLoading(state)
 {
     if( state )
@@ -45,37 +55,8 @@ function SetLoading(state)
         $(".disable_on_load").removeAttr("disabled");
     }
 }
-/*
-function SetupAutoCompleteTags( data )
-{
-    // Build auto complete object
-    for( c in data )
-    {
-        var name = data[c].fields.subject + " " + data[c].fields.catalog_no + ": " + data[c].fields.title
-        var value = c;
-        tags.push( { id:c, label:name, } );
-    }
-}
 
-
-// Bind course auto complete 
-function BindAutoComplete( obj )
-{
-    // Bind the auto complete
-    $(obj).autocomplete({
-        source: function(request, response) {
-            var results = $.ui.autocomplete.filter(tags, request.term);
-            response(results.slice(0, 10));
-        },
-        change: function(event,ui){
-        },
-        messages: {
-            noResults: '',
-            results: function() {}
-        },      
-    }); 
-}
-*/
+// Resizes the windows for the current screen
 function ResizeElements()
 {
     SetupWindows();
@@ -113,13 +94,14 @@ function BindEvents()
         mouse.x = e.clientX;
         mouse.y = e.clientY;
     });
-        
-    $(".slot").click( function(e){
-        ContextInit( this, context.slotMenu, MenuCallback );
-    });
-    
+            
+    // Schedule Navigation events
     $(".schedule_inputs").children(".next").click( NextSchedule );
     $(".schedule_inputs").children(".prev").click( PrevSchedule );
+    $(".schedule_filter_clear").click( function(e){
+        ResetFilters();
+        CalcSchedules();
+    });
 }
 
 
@@ -192,6 +174,7 @@ function SetupWindows()
     windowAnimationOptions.duration = oldDuration;
 }
 
+// Function that is called once a window is opened
 function WindowOpenComplete()
 {
     if( current_window == 1 )
@@ -203,6 +186,11 @@ function WindowOpenComplete()
     }
 }
 
+// General callback / function to log something
+function log( data )
+{ 
+    console.log( data ); 
+}
 
 
 ///////////////////////////////////
@@ -212,20 +200,21 @@ var context =
 {
 	contextMenuAnimation:{ duration: 100 },
 	depth:0,
-	menuOffset:{ "x": 140, "y": 0 },
-    classBlockMenu:
+	menuOffset:{ "x": 120, "y": 0 },
+    dayBlockMenu:
     {
-        "Remove Class":1,
-        "Remove Time":
-        {
-            "All at this time":"Remove",
-            "All After this time":"Remove",
+        "Don't include":{
+            "This Section":1,
+            "This Course":2,
+        },             
+        "Must include":{
+            "This Section":3,
+            "This Course":4,
+        },          
+        "No Classes":{
+            "Earlier Than This Time":5,
+            "Later Than This Time":6,
         },
-        "Remove Class and Time":
-            {
-                "All at this time":"Remove",
-                "All After this time":"Remove",
-            },            
 	},
     courseItem:
     {
@@ -233,46 +222,21 @@ var context =
     },
     target:null,
 };
-function SearchSelection( node, callback )
+
+// Context menu callback for the remove course context menu
+function RemoveCourseCallback(value)
 {
-    var menu_selection = $("<li>",{
-        class:"context_item",
-        key:node,
-    });
-    
-    // Search box
-    var search_input = $("<input>",{
-        type:"text",
-        class:"context_item context_search",
-        placeholder:"Search",
-    });
-    
-    BindAutoComplete( search_input );
-    
-    menu_selection.append( search_input );  
-    
-    // Add Button
-    var search_button = $("<input>",{
-        type:"button",
-        value:"Add Class",
-        class:"context_item context_button",
-    });
-    
-    $(search_button).click(function(e){
-        var searchValue = $(search_input).val();
-        
-        if( searchValue.length > 0 )
-        {
-            callback( searchValue );
-            CloseAllContextMenus();
-        }
-    });
-    
-    menu_selection.append( search_button ); 
-    
-    
-    return menu_selection;
+    switch( value )
+    {
+        case 1:
+            var id = $(context.target).attr("slot_id");
+            Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
+            cur_slot--;
+        break;
+    }
 }
+
+/*
 function MenuCallback( value, menu, key )
 {
     var newClass = $("<li>",{
@@ -281,8 +245,13 @@ function MenuCallback( value, menu, key )
     
     $("#classes").append( newClass );
 }
+*/
 
-// Inits the context menu
+// Inits a context menu at a target position. This function should be used to start a context menu
+// to preserve only one open menu and the target structure of the context system
+// target: The location to create the menu
+// menu: object that represents the menu structure
+// callback: function that will be called once a selection has been made from the menu
 function ContextInit( target, menu, callback )
 {
     // Close all other context menus
@@ -303,6 +272,7 @@ function ContextInit( target, menu, callback )
     ContextMenu( target, menu, callback );
 }
 
+// Will close all of the open context menus
 function CloseAllContextMenus()
 {
     context.depth = 0;
@@ -315,6 +285,10 @@ function CloseAllContextMenus()
     });
 }
 
+// Creates a context menu at a target position
+// target: The location to create the menu
+// menu: object that represents the menu structure
+// callback: function that will be called once a selection has been made from the menu
 function ContextMenu( target, menu, callback )
 {
     // Create the window
@@ -421,11 +395,6 @@ function ContextMenu( target, menu, callback )
     context.depth++;
 }
 
-function ClassBlockCallback( value )
-{
-    console.log( value );
-}
-
 ///////////////////////////////////
 /////////////SCHEDULES/////////////
 ///////////////////////////////////
@@ -447,12 +416,15 @@ var schedule = {
         "ARR":"null",        
     },
 };
+
+// Will lock the schedule while new data is being loaded
 function ScheduleLock()
 {
     SetLoading( true );
     schedule.lock = true;
 }
 
+// Unlocks the schedule after data has been loaded
 function ScheduleUnlock()
 {
     SetLoading( false );
@@ -461,6 +433,7 @@ function ScheduleUnlock()
 function ProcessSessionCourses(data)
 {
     cur_slot = data.length;
+    
     // If there are courses returned get schedule data
     if( data.length > 0 )
     {
@@ -481,12 +454,15 @@ function ProcessSessionCourses(data)
     BindCourseClick();
 }
 
+// Removed all of the blocks from the schedule
 function ClearSchedule()
 {
     $(".week_day .entries").children().remove();
     $(".schedule_details").children().remove();
+    $(".class_block").remove();
 }
 
+// Pads a time string to always contain at least 4 characters
 function PadTimeString( time )
 {
     var padding = "";
@@ -498,6 +474,7 @@ function PadTimeString( time )
     return padding + time;
 }
 
+// Returns an object with the int value of the hours and minutes from a time string
 function GetHourMinutes( time )
 {
     var hours = parseInt( time.substring( 0, 2 ) );
@@ -506,11 +483,13 @@ function GetHourMinutes( time )
     return { "HH": hours, "MM": minutes }
 }
 
+// Returns the difference in military times as a float
 function DifferenceMilitary( start, end )
 {
     return MilitaryFloatValue( end )  - MilitaryFloatValue( start );
 }
 
+// Returns the float value of a military time
 function MilitaryFloatValue( time )
 {
     time = PadTimeString( time );
@@ -518,6 +497,7 @@ function MilitaryFloatValue( time )
     return timeComps.HH + ( timeComps.MM / 60 )
 }
 
+// Will load a schedule from the cached schedules
 function LoadSchedule( schedule_id )
 {
     ClearSchedule();
@@ -563,6 +543,7 @@ function LoadSchedule( schedule_id )
     }
 }
 
+// Schedule next button event function
 function NextSchedule()
 {
     if( schedule.lock )
@@ -579,6 +560,7 @@ function NextSchedule()
     LoadSchedule( schedule.currentSchedule ); 
 }
 
+// Schedule prev button event function
 function PrevSchedule()
 {
     if( schedule.lock )
@@ -595,112 +577,193 @@ function PrevSchedule()
     LoadSchedule( schedule.currentSchedule );   
 }
 
+// Will create a day block for a schedule time
 function AddDayBlock( course, instance )
 {
+    // Get the correct day to add block to
     var entries = $("."+schedule.abbrToDay[instance.day]+".week_day").children(".entries");
+    
+    // Length and start time of the block
     var lengthValue = DifferenceMilitary( instance.start, instance.end );
     var startValue = MilitaryFloatValue( instance.start )-8;
+    
+    // Wrapper for the block
     var divWrapper = $("<div>",{
         class:"class_block_wrapper",
     });
         
+    // Create the block
     var block = $("<div>",{
         class:"class_block no_select",
-        course_id:course.id
+        course_id:course.id,
+        instance_id:course.instance_id,
+        start_time:instance.start,
+        end_time:instance.end,
     });
     
+    // Give the block an click function for the context menus
     $(block).click( function(e){
-        ContextInit( this, context.classBlockMenu, courseCallback );
+        ContextInit( this, context.dayBlockMenu, DayBlockCallback );
     }); 
     
+    // Calculate the size of the new block
     var heightMultiple = ( $(".calendar").height() - 20 ) / 16;
-    var blockWidth = ($(".calendar").width() * 0.13)-2;
+    var blockWidth = ($(".calendar").width() * 0.10)-2;
     
+    // Position and size the new block
     $(block).css( { height: (lengthValue*heightMultiple)+"px", top: startValue*heightMultiple, width:(blockWidth)+"px" } );
     $(block).text( course.subject );
     
     $(divWrapper).append( block );
     $(entries).append( divWrapper );
     
+    // Add a details row 
     var details = $("<div>",{
         text:course.subject + ": " + instance.day + ", " + instance.start + " - " + instance.end,
         class:"schedule_details_row no_select",
-        course_id:course.id,        
+        course_id:course.id,
+        instance_id:course.instance_id,
+        start_time:instance.start,
+        end_time:instance.end,        
     });
     
+    // Give the details row the same context menu as the block
     $(details).click( function(e){
-        ContextInit( this, context.classBlockMenu, courseCallback );
+        ContextInit( this, context.dayBlockMenu, DayBlockCallback );
     });     
     
     // Add details to schedule details
     $(".schedule_details").append( details );
 }
 
+// Will process filter requests from the context menu
+function DayBlockCallback(value)
+{
+    switch( value )
+    {
+        case 1:
+            var dontInclude = parseInt($(context.target).attr("instance_id"));
+            filters.not_instance.push( dontInclude );
+        break;
+        
+        case 2:
+            var dontInclude = parseInt($(context.target).attr("course_id"));
+            filters.not_course.push( dontInclude );
+        break;        
+        
+        case 3:
+            var mustInclude = parseInt($(context.target).attr("instance_id"));
+            filters.instance.push( mustInclude );
+        break;           
+        
+        case 4:
+            var mustInclude = parseInt($(context.target).attr("course_id"));
+            filters.course.push( mustInclude );
+        break;        
+        
+        case 5:
+            var start = $(context.target).attr("start_time");
+            filters.start = start;
+        break;
+
+        case 6:
+            var end = $(context.target).attr("end_time");
+            filters.end = end;
+        break;        
+    }
+    
+    // Update the schedules based on the filters
+    FilterSchedules();
+}
+
 /*
-function RenderSchedule( schedule )
-{
-    Dajaxice.ssu.render_schedule( Dajax.process, { width:($(".calendar").width() * 0.14)-1, height:( $(".calendar").height() - 20 ) / 16, schedule_id:schedule } );
-}
-
-function SetScheduleEvents( data )
-{
-    $(".class_block").click(function(e){
-        ContextInit( this, context.classBlockMenu, ClassBlockCallback );
-    });
-}
-*/
-
 function AddCourse( course_id )
 {
     Dajaxice.ssu.add_course( Dajax.process, course_id );
 }
+*/
 
+// Calculates the schedules on the django end
 function CalcSchedules()
 {
+    // Reset the filters
+    ResetFilters();
+    
     // Process the schedules on the python end
-    Dajaxice.ssu.make_schedules( SetMaxNumberOfSchedules );
+    Dajaxice.ssu.make_schedules( MakeSchedulesCallback );
 }
 
+// Removes a course slot based on position in the django course array
 function RemoveCourse( slot )
 {
     Dajaxice.ssu.remove_course( Dajax.process, { slot_id:slot } );
     Dajaxice.ssu.make_schedules( Dajax.process );
 }
 
-// Callback for django to set the total number of schedules
-function SetMaxNumberOfSchedules( data )
+// Callback for the make schedules function. This will return the number of schedules that can be loaded
+// and will init the schedule browser
+function MakeSchedulesCallback( max )
 {
-    schedule.maxSchedules = data;
+    schedule.maxSchedules = max;
+    
+    // Set the starting limits
     schedule.scheduleLimit.min = 0;
     schedule.scheduleLimit.max = schedule.scheduleStep*2;
+    
+    // Load the schedules in that range
     GetScheduleData( schedule.scheduleLimit.min, schedule.scheduleLimit.max );
 }
 
+// Will load the requested schedule data
 function GetScheduleData( start, end )
 {
     ScheduleLock();
-    Dajaxice.ssu.get_schedules( ScheduleData, { start:start, end:end } );
+    Dajaxice.ssu.get_schedules( ScheduleDataCallback, { start:start, end:end } );
 }
 
-function ScheduleData( data )
+// Callback for loading schedule data
+function ScheduleDataCallback( data )
 {
     ScheduleUnlock();
     if( data instanceof Array )
     {
         schedule.schedules = data;
     }
+    else
+    {
+        schedule.schedules = [];
+    }
+    
+    // Load the first schedule
+    schedule.currentSchedule = 0;
+    LoadSchedule( schedule.currentSchedule );
+    
     SetScheduleLabel();
     console.log( "done" );    
 }
 
-function ToConsole( data )
-{
-    console.log( data );
+// Will filter the current schedules based on 
+function FilterSchedules( )
+{  
+    filter = { "filter":filters };
+    Dajaxice.ssu.filter_schedules( MakeSchedulesCallback, filter );
 }
 
+// Will reset the filter object
+function ResetFilters()
+{
+    filters.not_course = [];
+    filters.not_instance = [];
+    filters.course = [];
+    filters.instance = [];
+    filters.start = "0000";
+    filters.end = "2400";
+}
+
+// Sets the labels for the schedules
 function SetScheduleLabel()
 {
-    if( schedule.schedules instanceof Array && schedule.schedules[0].length > 0 )
+    if( schedule.schedules[0] instanceof Array && schedule.schedules[0].length > 0 )
     {
        $(".schedule_label").text( "Schedules( "+(schedule.currentSchedule+schedule.scheduleLimit.min+1)+"/"+(schedule.maxSchedules)+")");
     }
@@ -773,16 +836,7 @@ function ge_callback() {
     }
 }
 
-function courseCallback(value)
-{
-    if( value == 1 )
-    {
-        var id = $(context.target).attr("slot_id");
-        Dajaxice.ssu.remove_course(Dajax.process, { "id":id } );
-        cur_slot--;
-    }
-}
-
+// Binds listeners to the course list objects
 function BindCourseClick()
 {
     // Remove old click listeners to be safe
@@ -790,10 +844,11 @@ function BindCourseClick()
     
     // Add new listeners
     $("#added_courses").children("p").click(function(e){
-        ContextInit( this, context.courseItem, courseCallback );
+        ContextInit( this, context.courseItem, RemoveCourseCallback );
     });
 }
 
+// Callback for adding a course from django
 function AddCourseCallback()
 {
     // Get the new schedules
@@ -803,6 +858,7 @@ function AddCourseCallback()
     BindCourseClick();
 }
 
+// Callback for deleting a course from django
 function DeleteCallback()
 {
     schedule.currentSchedule = 0;

@@ -122,9 +122,109 @@ def add_course(request, course_id, slot_id):
         
     request.session.modified = True
     return dajax.json()
+    
+# Will take in a set of restrictions and filter the current schedule set
+# returns the new length of the schedules array after reductions
+@dajaxice_register  
+def filter_schedules( request, filter ):
+    
+    # If there are no schedules then there is nothing to do
+    if not 'schedules' in request.session:
+        return
+    
+    # Filter course instances from the result
+    if 'not_instance' in filter and len(filter['not_instance']) > 0:
+        emptySet = set()
+        notSet = set(filter['not_instance'])
+        # This will return the set of schedules that do not contain any of the filtered sections
+        request.session['schedules'] = [x for x in request.session['schedules'] if notSet&set(x)==emptySet]
+        
+    # Filter course instances from the result
+    if 'instance' in filter and len(filter['instance']) > 0:
+        emptySet = set()
+        notSet = set(filter['instance'])
+        # This will return the set of schedules that do not contain any of the filtered sections
+        request.session['schedules'] = [x for x in request.session['schedules'] if notSet&set(x)!=emptySet]        
+        
+    # Filter course instances from the result
+    if 'not_course' in filter and len(filter['not_course']) > 0:
+        delete_schedules = []
+        for i, schedule in enumerate(request.session['schedules']):
+        
+            # Get the courses in the schedule
+            course_ids = []
+            for instance_id in schedule:
+                ci = CourseInstance.objects.filter(id=instance_id)
+                course_ids.append( ci[0].course.id )
+            
+            # If the resulting set of course ids does not include all of the ids in the filter remove it
+            if set(filter['not_course'])&set(course_ids)!=set():
+                delete_schedules.append( i )
+        
+        # Remove schedules flagged for deletion
+        request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]
+        
+    # Filter course instances from the result
+    if 'course' in filter and len(filter['course']) > 0:
+        delete_schedules = []
+        for i, schedule in enumerate(request.session['schedules']):
+        
+            # Get the courses in the schedule
+            course_ids = []
+            for instance_id in schedule:
+                ci = CourseInstance.objects.filter(id=instance_id)
+                course_ids.append( ci[0].course.id )
+            
+            # If the resulting set of course ids does not include all of the ids in the filter remove it
+            if set(filter['course'])&set(course_ids)==set():
+                delete_schedules.append( i )
+        
+        # Remove schedules flagged for deletion
+        request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]        
+            
+    
+    # Filter based on starting time and ending time
+    if 'start' in filter or 'end' in filter:
+        if not 'start' in filter:
+            filter['start'] = "0000"
+            
+        if not 'end' in filter:
+            filter['end'] = "2400"
+                                
+        # make sure that the start and end time are in the correct format
+        filter['start'] = str(filter['start']).zfill(4)
+        filter['end'] = str(filter['end']).zfill(4)
+            
+        delete_schedules = []
+        for i, schedule in enumerate(request.session['schedules']):
+        
+            remove = False
+            
+            # Check each instance if there is a conflicting time
+            for instance in schedule:
+                ci = CourseInstance.objects.filter(id=instance)
+                times = ci[0].section_times()
+                for t in times:
+                    if t['start'] < filter['start'] or t['end'] > filter['end']:
+                        remove = True
+                        break
+                
+                if remove:
+                    break
+            
+            # Add the schedule to be removed if true
+            if remove:
+                delete_schedules.append(i)
+        
+        # Remove the elements that match
+        request.session['schedules'] = [ v for i,v in enumerate(request.session['schedules']) if i not in delete_schedules ]
+            
+    request.session.modified = True
+    return len( request.session['schedules'] )        
+        
 
 @dajaxice_register  
-def make_schedules( request, options ):
+def make_schedules( request ):
 
     if not 'instances' in request.session:
         request.session['instances'] = []
@@ -135,12 +235,8 @@ def make_schedules( request, options ):
     request.session['schedules'] = list( product( *request.session['instances'] ) )
     
     #conflict resolution
-    
-    #options processing
-    
 
     request.session.modified = True
-  
     return len( request.session['schedules'] )
 
 @dajaxice_register
@@ -175,7 +271,7 @@ def get_schedules( request, start, end ):
             times.append( ci[0].section_times() )
             
             # Add the course to the course array
-            courses.append( { "title":course.title, "subject":course.subject_no, "times":times, "id":course.id } )
+            courses.append( { "title":course.title, "instance_id":ci[0].id, "subject":course.subject_no, "times":times, "id":course.id } )
      
         schedules.append( courses )
     
