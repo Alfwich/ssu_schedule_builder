@@ -124,7 +124,7 @@ def add_course(request, course_id, slot_id):
     return dajax.json()
 
 @dajaxice_register  
-def make_schedules( request ):
+def make_schedules( request, options ):
 
     if not 'instances' in request.session:
         request.session['instances'] = []
@@ -133,6 +133,12 @@ def make_schedules( request ):
         request.session['schedules'] = []   
 
     request.session['schedules'] = list( product( *request.session['instances'] ) )
+    
+    #conflict resolution
+    
+    #options processing
+    
+
     request.session.modified = True
   
     return len( request.session['schedules'] )
