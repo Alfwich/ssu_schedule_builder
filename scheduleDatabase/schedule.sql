@@ -1,4 +1,4 @@
-USE schedule;
+USE $DB_NAME;
 
 LOCK TABLES schedule WRITE;
 
